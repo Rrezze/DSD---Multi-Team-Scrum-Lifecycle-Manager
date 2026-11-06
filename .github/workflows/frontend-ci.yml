@@ -23,6 +23,10 @@ jobs:
       - name: Build frontend Docker image
         run: docker build -t frontend:ci ./frontend
 
+      # Run Unit tests for the frontend
+      - name: Run frontend unit tests
+        run: docker run --rm frontend:ci npm test
+
       # Verify React production build
       - name: Verify production build
         run: docker run --rm frontend:ci npm run build
