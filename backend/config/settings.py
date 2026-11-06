@@ -17,7 +17,14 @@ INSTALLED_APPS = [
     # third party
     "rest_framework",
     "drf_spectacular",
+    # our apps
+    "users",
+    "tickets",
 ]
+
+# Use our own User model (users.User) instead of Django's built-in one.
+# This must be set before the first migration.
+AUTH_USER_MODEL = "users.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
