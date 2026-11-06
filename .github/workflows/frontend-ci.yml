@@ -1,0 +1,57 @@
+
+name: Frontend CI
+
+on:
+  push:
+
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  frontend:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+
+    steps:
+      # Get the repository source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Build the frontend Docker image
+      - name: Build frontend Docker image
+        run: docker build -t frontend:ci ./frontend
+
+      # Verify React production build
+      - name: Verify production build
+        run: docker run --rm frontend:ci npm run build
+
+      # Start the frontend container (Vite)
+      - name: Start frontend container
+        run: |
+          docker run -d \
+            --name frontend \
+            -p 5173:5173 \
+            frontend:ci
+
+      # Verify that Vite is responding
+      - name: Test frontend availability
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://localhost:5173 > /dev/null; then
+              echo "Frontend is running successfully"
+              exit 0
+            fi
+
+            sleep 2
+          done
+
+          echo "Frontend failed to start"
+          docker logs frontend
+          exit 1
+
+      # Clean up the container
+      - name: Cleanup
+        if: always()
+        run: docker rm -f frontend || true
