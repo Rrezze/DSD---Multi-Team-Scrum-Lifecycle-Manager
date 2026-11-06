@@ -10,7 +10,7 @@ describe('Example component', () => {
         render(<Example />);
 
         expect(
-            screen.getByRole('heading', { name: 'Frontend is not working' })
+            screen.getByRole('heading', { name: 'Frontend is working' })
         ).toBeInTheDocument();
     });
 });
