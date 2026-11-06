@@ -17,7 +17,7 @@ jobs:
     steps:
       # Get the repository source code
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Build the frontend Docker image
       - name: Build frontend Docker image
