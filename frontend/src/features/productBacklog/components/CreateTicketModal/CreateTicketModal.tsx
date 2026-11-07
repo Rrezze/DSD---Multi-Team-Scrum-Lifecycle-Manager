@@ -5,6 +5,7 @@ import styles from "./CreateTicketModal.module.css";
 type CreateTicketModalProps = {
     isOpen: boolean;
     onClose: () => void;
+    onCreated: () => void;
 };
 
 type TicketType = "EPIC" | "STORY" | "TASK" | "BUG";
@@ -12,6 +13,7 @@ type TicketType = "EPIC" | "STORY" | "TASK" | "BUG";
 export default function CreateTicketModal({
     isOpen,
     onClose,
+    onCreated,
 }: CreateTicketModalProps) {
     const [ticketType, setTicketType] = useState<TicketType>("STORY");
     const [title, setTitle] = useState("");
@@ -106,6 +108,7 @@ const handleSubmit = async () => {
         }
         // Ticket created successfully
         //setSuccessMessage("Ticket created successfully!");
+        onCreated(); // Notify parent component about the successful creation
         onClose();
 
         // Clear the form

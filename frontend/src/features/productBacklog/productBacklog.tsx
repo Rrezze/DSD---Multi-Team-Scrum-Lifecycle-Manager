@@ -9,6 +9,7 @@ export default function ProductBacklog() {
 
     // Controls whether the Create Ticket modal is visible
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
 
     // Opens the modal
     const handleOpenModal = () => {
@@ -19,6 +20,9 @@ export default function ProductBacklog() {
     const handleCloseModal = () => {
         setIsModalOpen(false);
     };
+    const handleTicketCreated = () => {
+    setSuccessMessage("Ticket created successfully!");
+};
 
     return (
         <main className={styles.page}>
@@ -42,10 +46,16 @@ export default function ProductBacklog() {
                     + Create Ticket
                 </button>
             </div>
+            {successMessage && (
+                    <p role="status" className={styles.successMessage}>
+                        {successMessage}
+                    </p>
+                )}
 
             <CreateTicketModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
+                onCreated={handleTicketCreated}
             />
 
         </main>
