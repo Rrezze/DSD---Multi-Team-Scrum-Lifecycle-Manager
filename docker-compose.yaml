@@ -40,12 +40,15 @@ services:
 
   # frontend: added by the frontend team in S2-04
   frontend:
-      build: ./frontend
-      restart: unless-stopped
-      ports:
+    build: ./frontend
+    restart: unless-stopped
+    environment:
+      DOCKER_ENV: "true"
+    ports:
       - "127.0.0.1:5173:5173"
-      volumes:
-       - ./frontend:/app
-       - /app/node_modules
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 volumes:
   pgdata:
+  

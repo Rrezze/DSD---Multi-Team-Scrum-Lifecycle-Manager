@@ -19,6 +19,8 @@ export default function CreateTicketModal({
     const [estimatePoints, setEstimatePoints] = useState("");
     const [parent, setParent] = useState("");
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [apiError, setApiError] = useState("");
 
     if (!isOpen) {
         return null;
@@ -50,6 +52,79 @@ export default function CreateTicketModal({
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
+};
+
+const handleSubmit = async () => {
+    setApiError("");
+
+    // Validate the form first
+    if (!validateForm()) {
+        return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+        // Prepare the ticket data
+        const ticketData = {
+            type: ticketType,
+            title: title.trim(),
+            description: description.trim(),
+            estimate_points: Number(estimatePoints),
+        };
+
+        // Send the request to Django
+        const response = await fetch("/api/tickets/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(ticketData),
+        });
+
+        // Read the backend response safely
+        const responseText = await response.text();
+
+        let data: { detail?: string } = {};
+
+        try {
+            data = responseText ? JSON.parse(responseText) : {};
+        } catch {
+            data = {};
+        }
+
+        // Handle errors returned by Django
+        if (!response.ok) {
+            const errorMessage =
+                typeof data.detail === "string"
+                    ? data.detail
+                    : response.status >= 500
+                        ? "Unable to connect to the server. Please try again."
+                        : "Unable to create ticket. Please check your information.";
+
+            throw new Error(errorMessage);
+        }
+        // Ticket created successfully
+        //setSuccessMessage("Ticket created successfully!");
+        onClose();
+
+        // Clear the form
+        setTicketType("STORY");
+        setTitle("");
+        setDescription("");
+        setEstimatePoints("");
+        setParent("");
+        setErrors({});
+
+    } catch (error) {
+        setApiError(
+            error instanceof Error
+                ? error.message
+                : "Something went wrong while creating the ticket."
+        );
+    } finally {
+        setIsSubmitting(false);
+    }
 };
 
     return (
@@ -206,6 +281,11 @@ export default function CreateTicketModal({
 
                 {/* Footer */}
                 <div className={styles.footer}>
+                {apiError && (
+                    <p role="alert" className={styles.error}>
+                        {apiError}
+                    </p>
+                )}
                     <button
                         type="button"
                         className={styles.cancelButton}
@@ -217,16 +297,11 @@ export default function CreateTicketModal({
                     <button
                         type="button"
                         className={styles.createButton}
-                        onClick={() => {
-                            const isValid = validateForm();
-                            if (!isValid) {
-                                return;
-                            }
-                            console.log("Form is valid!");
-                        }}
-                    >
-                        Create ticket
-                    </button>
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                     >
+                          {isSubmitting ? "Creating..." : "Create ticket"}
+                            </button>
                 </div>
             </div>
         </div>
