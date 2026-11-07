@@ -25,6 +25,32 @@ export default function CreateTicketModal({
     }
 
     const showParentField = ticketType !== "EPIC";
+    const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!title.trim()) {
+        newErrors.title = "Ticket title is required.";
+    }
+
+    if (!description.trim()) {
+        newErrors.description = "Description is required.";
+    }
+
+    if (!estimatePoints.trim()) {
+        newErrors.estimatePoints = "Estimate points are required.";
+    } else {
+        const estimate = Number(estimatePoints);
+
+        if (!Number.isInteger(estimate) || estimate <= 0) {
+            newErrors.estimatePoints =
+                "Estimate must be a positive whole number.";
+        }
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+};
 
     return (
         <div className={styles.overlay}>
@@ -101,6 +127,11 @@ export default function CreateTicketModal({
                                     onChange={(event) => setEstimatePoints(event.target.value)}
                                     required
                                 />
+                                {errors.estimatePoints && (
+                                    <small className={styles.error}>
+                                        {errors.estimatePoints}
+                                    </small>
+                                )}
 
                                 <span>pts</span>
                             </div>
@@ -120,6 +151,9 @@ export default function CreateTicketModal({
                                 onChange={(event) => setTitle(event.target.value)}
                                 required
                             />
+                            {errors.title && (
+                                <small className={styles.error}>{errors.title}</small>
+                            )}
                         </div>
 
                         {/* Parent */}
@@ -131,7 +165,8 @@ export default function CreateTicketModal({
 
                                 <select
                                     id="ticket-parent"
-                                    defaultValue=""
+                                    value={parent}
+                                    onChange={(event) => setParent(event.target.value)}
                                     disabled
                                 >
                                     <option value="">
@@ -161,6 +196,9 @@ export default function CreateTicketModal({
                                 onChange={(event) => setDescription(event.target.value)}
                                 required
                             />
+                            {errors.description && (
+                                <small className={styles.error}>{errors.description}</small>
+                            )}
                         </div>
 
                     </div>
@@ -179,6 +217,13 @@ export default function CreateTicketModal({
                     <button
                         type="button"
                         className={styles.createButton}
+                        onClick={() => {
+                            const isValid = validateForm();
+                            if (!isValid) {
+                                return;
+                            }
+                            console.log("Form is valid!");
+                        }}
                     >
                         Create ticket
                     </button>

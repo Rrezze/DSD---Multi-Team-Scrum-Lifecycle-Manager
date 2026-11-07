@@ -289,3 +289,8 @@
         padding: 16px 20px;
     }
 }
+.error {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px;
+}
