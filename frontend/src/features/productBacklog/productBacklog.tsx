@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import styles from "./productBacklog.module.css";
 
-import CreateTicketModal from "./components/CreateTicketModal/CreateTicketModal";
+import CreateTicketModal from './createTicketModal';
 
 export default function ProductBacklog() {
 

@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import styles from "./CreateTicketModal.module.css";
+import styles from "./createTicketModal.module.css";
 
 type CreateTicketModalProps = {
     isOpen: boolean;
@@ -10,7 +10,7 @@ type CreateTicketModalProps = {
 
 type TicketType = "EPIC" | "STORY" | "TASK" | "BUG";
 
-export default function CreateTicketModal({
+export default function createTicketModal({
     isOpen,
     onClose,
     onCreated,
