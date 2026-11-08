@@ -1,4 +1,4 @@
-import styles from "./Notification.module.css";
+import styles from "./notification.module.css";
 
 interface NotificationProps {
     type: "success" | "error" | "warning" | "info";
