@@ -8,6 +8,7 @@
  * Architecture:
  * - Shared Modal provides the modal container.
  * - Shared Button provides reusable button styling.
+ * - Shared Notification displays success and error messages.
  * - productBacklogApi handles backend communication.
  * - productBacklogTypes provides feature-specific TypeScript types.
  *
@@ -15,12 +16,13 @@
  * are maintained within this feature page.
  */
 
-import { useState } from "react";
+import { useCallback, useState, type FormEvent } from "react";
 
 import styles from "./productBacklog.module.css";
 
 import Modal from "../../components/modal/Modal";
 import Button from "../../components/button/Button";
+import Notification from "../../components/notification/notification";
 
 import { createTicket } from "./productBacklogApi";
 
@@ -32,48 +34,30 @@ import type {
 
 export default function ProductBacklog() {
 
-    // Controls the visibility of the Create Ticket modal.
+    // Controls modal visibility.
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Displays a confirmation message after successful ticket creation.
+    // Stores success messages displayed outside the modal.
     const [successMessage, setSuccessMessage] = useState("");
 
-    // Stores the values entered into the ticket form.
+    // Ticket form state.
     const [ticketType, setTicketType] = useState<TicketType>("STORY");
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [estimatePoints, setEstimatePoints] = useState("");
     const [parent, setParent] = useState("");
 
-    // Stores validation errors for individual form fields.
+    // Stores client-side validation errors.
     const [errors, setErrors] = useState<TicketFormErrors>({});
 
-    // Controls the submission state of the form.
+    // Controls form submission.
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Stores errors returned during ticket creation.
+    // Stores errors returned by the backend.
     const [apiError, setApiError] = useState("");
 
     /**
-     * Opens the Create Ticket modal.
-     */
-    const handleOpenModal = () => {
-        setSuccessMessage("");
-        setApiError("");
-        setIsModalOpen(true);
-    };
-
-    /**
-     * Closes the Create Ticket modal.
-     */
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-    };
-
-    /**
-     * Resets all form fields and validation messages.
-     *
-     * Called after a ticket has been created successfully.
+     * Resets all ticket form fields and validation errors.
      */
     const resetForm = () => {
         setTicketType("STORY");
@@ -86,12 +70,28 @@ export default function ProductBacklog() {
     };
 
     /**
-     * Validates the ticket form before submission.
+     * Opens the Create Ticket modal.
+     */
+    const handleOpenModal = () => {
+        setSuccessMessage("");
+        setApiError("");
+        setIsModalOpen(true);
+    };
+
+    /**
+     * Closes the modal and resets the form.
      *
-     * Validation rules:
-     * - Ticket title is required.
-     * - Description is required.
-     * - Estimate points must be a positive whole number.
+     * Prevents closing while a request is being submitted.
+     */
+    const handleCloseModal = useCallback(() => {
+        if (isSubmitting) return;
+
+        setIsModalOpen(false);
+        resetForm();
+    }, [isSubmitting]);
+
+    /**
+     * Validates the ticket form before submission.
      *
      * @returns True when all validation rules are satisfied.
      */
@@ -123,28 +123,25 @@ export default function ProductBacklog() {
     };
 
     /**
-     * Handles the Create Ticket form submission.
-     *
-     * Validates the form, prepares the ticket payload,
-     * and calls the Product Backlog API service.
+     * Handles Create Ticket form submission.
      *
      * On success:
-     * - Displays a success message.
+     * - Displays a success notification.
      * - Closes the modal.
      * - Resets the form.
      *
      * On failure:
-     * - Displays an error message.
-     * - Preserves the entered form values for correction or retry.
+     * - Displays a backend error notification.
+     * - Preserves form values for correction or retry.
      */
     const handleSubmit = async (
-        event: React.FormEvent<HTMLFormElement>
+        event: FormEvent<HTMLFormElement>
     ) => {
         event.preventDefault();
 
         setApiError("");
 
-        // Validate the form before communicating with the backend.
+        // Validate before sending the request.
         if (!validateForm()) {
             return;
         }
@@ -152,26 +149,28 @@ export default function ProductBacklog() {
         setIsSubmitting(true);
 
         try {
-            // Prepare the ticket data according to the backend API contract.
+            // Prepare request according to the backend API contract.
             const ticketData: CreateTicketPayload = {
                 type: ticketType,
                 title: title.trim(),
                 description: description.trim(),
                 estimate_points: Number(estimatePoints),
+                parent: parent ? Number(parent) : null,
             };
 
-            // Create the ticket using the feature-specific API service.
+            // Send request through the feature API service.
             await createTicket(ticketData);
 
-            // Notify the user that the ticket was created successfully.
+            // Display success notification.
             setSuccessMessage("Ticket created successfully!");
 
-            // Close the modal and reset the form after success.
+            // Close modal and reset form.
             setIsModalOpen(false);
             resetForm();
 
         } catch (error) {
-            // Display a readable error without losing the entered form data.
+
+            // Display the error returned by the API service.
             setApiError(
                 error instanceof Error
                     ? error.message
@@ -179,19 +178,17 @@ export default function ProductBacklog() {
             );
 
         } finally {
-            // Re-enable form submission after the request completes.
             setIsSubmitting(false);
         }
     };
 
-    // Parent selection is currently unavailable because the parent-ticket
-    // listing API has not yet been integrated.
+    // Parent selection is unavailable until the parent-ticket API is integrated.
     const showParentField = ticketType !== "EPIC";
 
     return (
         <main className={styles.page}>
 
-            {/* Product Backlog page heading and primary action */}
+            {/* Page heading and primary action */}
             <div className={styles.header}>
                 <div>
                     <h1 className={styles.title}>
@@ -211,23 +208,20 @@ export default function ProductBacklog() {
                 </Button>
             </div>
 
-            {/* Displays a success message after ticket creation */}
-            {successMessage && (
-                <p
-                    role="status"
-                    className={styles.successMessage}
-                >
-                    {successMessage}
-                </p>
-            )}
+            {/* Generic success notification */}
+            <Notification
+                type="success"
+                message={successMessage}
+            />
 
-            {/* Shared Modal containing the Product Backlog ticket form */}
+            {/* Create Ticket modal */}
             <Modal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
+                labelledBy="create-ticket-title"
             >
 
-                {/* Ticket form header */}
+                {/* Modal header */}
                 <div className={styles.ticketHeader}>
                     <div>
                         <span className={styles.eyebrow}>
@@ -292,10 +286,18 @@ export default function ProductBacklog() {
                                             setEstimatePoints(event.target.value)
                                         }
                                         aria-invalid={!!errors.estimatePoints}
+                                        aria-describedby={
+                                            errors.estimatePoints
+                                                ? "estimate-error"
+                                                : undefined
+                                        }
                                     />
 
                                     {errors.estimatePoints && (
-                                        <small className={styles.error}>
+                                        <small
+                                            id="estimate-error"
+                                            className={styles.error}
+                                        >
                                             {errors.estimatePoints}
                                         </small>
                                     )}
@@ -319,10 +321,16 @@ export default function ProductBacklog() {
                                         setTitle(event.target.value)
                                     }
                                     aria-invalid={!!errors.title}
+                                    aria-describedby={
+                                        errors.title ? "title-error" : undefined
+                                    }
                                 />
 
                                 {errors.title && (
-                                    <small className={styles.error}>
+                                    <small
+                                        id="title-error"
+                                        className={styles.error}
+                                    >
                                         {errors.title}
                                     </small>
                                 )}
@@ -371,10 +379,18 @@ export default function ProductBacklog() {
                                         setDescription(event.target.value)
                                     }
                                     aria-invalid={!!errors.description}
+                                    aria-describedby={
+                                        errors.description
+                                            ? "description-error"
+                                            : undefined
+                                    }
                                 />
 
                                 {errors.description && (
-                                    <small className={styles.error}>
+                                    <small
+                                        id="description-error"
+                                        className={styles.error}
+                                    >
                                         {errors.description}
                                     </small>
                                 )}
@@ -383,18 +399,14 @@ export default function ProductBacklog() {
                         </div>
                     </div>
 
-                    {/* Form footer and submission actions */}
+                    {/* Form footer */}
                     <div className={styles.ticketFooter}>
 
-                        {/* Displays errors returned by the API */}
-                        {apiError && (
-                            <p
-                                role="alert"
-                                className={styles.apiError}
-                            >
-                                {apiError}
-                            </p>
-                        )}
+                        {/* Generic API error notification */}
+                        <Notification
+                            type="error"
+                            message={apiError}
+                        />
 
                         <Button
                             type="button"

@@ -1,0 +1,37 @@
+
+.notification {
+    padding: 12px 16px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+/* Success notification */
+.success {
+    color: #166534;
+    background-color: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+/* Error notification */
+.error {
+    color: #991b1b;
+    background-color: #fef2f2;
+    border-color: #fecaca;
+}
+
+/* Warning notification */
+.warning {
+    color: #92400e;
+    background-color: #fffbeb;
+    border-color: #fde68a;
+}
+
+/* Information notification */
+.info {
+    color: #1e40af;
+    background-color: #eff6ff;
+    border-color: #bfdbfe;
+}

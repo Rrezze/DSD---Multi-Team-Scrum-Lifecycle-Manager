@@ -3,8 +3,6 @@
  * Product Backlog - Type Definitions
  *
  * Contains TypeScript types used by the Product Backlog feature.
- * Keeping feature-specific types here helps maintain consistency
- * and makes them reusable across the feature's files.
  */
 
 /**
@@ -15,16 +13,19 @@ export type TicketType = "EPIC" | "STORY" | "TASK" | "BUG";
 /**
  * Represents the data required to create a new ticket.
  *
- * The field names follow the backend API contract.
+ * Field names follow the backend API contract.
  */
 export interface CreateTicketPayload {
     type: TicketType;
     title: string;
     description: string;
     estimate_points: number;
+    parent: number | null;
 }
 
 /**
  * Stores validation errors associated with form fields.
  */
-export type TicketFormErrors = Record<string, string>;
+export type TicketFormErrors = Partial<
+    Record<"title" | "description" | "estimatePoints", string>
+>;
