@@ -5,7 +5,8 @@ import styles from "./Modal.module.css";
 interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
-    children: ReactNode;
+    labelledBy?: string;
+    children: React.ReactNode;
 }
 
 export default function Modal({
