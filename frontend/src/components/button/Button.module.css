@@ -1,0 +1,48 @@
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Primary action */
+.primary {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+.primary:hover:not(:disabled) {
+    background-color: #1d4ed8;
+}
+
+/* Secondary action */
+.secondary {
+    background-color: #e5e7eb;
+    color: #1f2937;
+}
+
+.secondary:hover:not(:disabled) {
+    background-color: #d1d5db;
+}
+
+/* Destructive action */
+.danger {
+    background-color: #dc2626;
+    color: #ffffff;
+}
+
+.danger:hover:not(:disabled) {
+    background-color: #b91c1c;
+}
