@@ -19,6 +19,8 @@ services:
   backend:
     build: ./backend
     restart: unless-stopped
+    # apply new migrations automatically, then start the dev server
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     environment:
       DJANGO_DEBUG: ${DJANGO_DEBUG:-1}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Set DJANGO_SECRET_KEY in .env}
@@ -38,12 +40,15 @@ services:
 
   # frontend: added by the frontend team in S2-04
   frontend:
-      build: ./frontend
-      restart: unless-stopped
-      ports:
+    build: ./frontend
+    restart: unless-stopped
+    environment:
+      DOCKER_ENV: "true"
+    ports:
       - "127.0.0.1:5173:5173"
-      volumes:
-       - ./frontend:/app
-       - /app/node_modules
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 volumes:
   pgdata:
+  
