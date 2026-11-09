@@ -1,0 +1,248 @@
+
+/* Product Backlog page header layout */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+    padding-right: 40px;
+}
+
+.createButton {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 9px;
+    padding: 13px 22px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 20px;
+}
+
+.createButton:hover {
+    background-color: #1d4ed8;
+}
+
+.createButton:focus-visible {
+    outline: 3px solid #93c5fd;
+    outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+    .header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+.successMessage {
+    display: block;
+    width: fit-content;
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+    border-radius: 8px;
+    padding: 8px 14px;
+    margin: 0 auto 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+}
+
+/*
+ * Product Backlog - Create Ticket Form
+ *
+ * These styles belong to the Product Backlog feature.
+ * The shared Modal component handles the overlay and
+ * modal container. This file handles ticket-specific UI.
+ */
+
+/* Ticket form header */
+
+.ticketHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 24px 28px;
+    border-bottom: 1px solid #edf0f4;
+}
+
+.eyebrow {
+    color: #2563eb;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.ticketHeader h2 {
+    margin: 8px 0 5px;
+    color: #172033;
+    font-size: 23px;
+    font-weight: 700;
+}
+
+.subtitle {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+/* Form body and layout */
+
+.formBody {
+    padding: 26px 28px;
+}
+
+.formGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 18px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.fullWidth {
+    grid-column: 1 / -1;
+}
+
+/* Form labels */
+
+.formGroup label {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.formGroup label span {
+    color: #dc2626;
+}
+
+/* Form input fields */
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+    width: 100%;
+    min-width: 0;
+    padding: 11px 12px;
+    border: 1px solid #dbe2ea;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #1e293b;
+    font-family: inherit;
+    font-size: 13px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.formGroup input,
+.formGroup select {
+    height: 43px;
+}
+
+.formGroup textarea {
+    min-height: 110px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.formGroup input::placeholder,
+.formGroup textarea::placeholder {
+    color: #94a3b8;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+/* Estimate points input */
+
+.estimateWrapper {
+    position: relative;
+}
+
+.estimateWrapper input {
+    padding-right: 48px;
+}
+
+.estimateWrapper span {
+    position: absolute;
+    top: 50%;
+    right: 13px;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 12px;
+    pointer-events: none;
+}
+
+/* Parent ticket field */
+
+.formGroup select:disabled {
+    background: #f8fafc;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.formGroup small {
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+/* Form footer */
+
+.ticketFooter {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 18px 28px;
+    border-top: 1px solid #edf0f4;
+    background: #ffffff;
+}
+
+/* Form validation and API errors */
+
+.error {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.apiError {
+    flex-basis: 100%;
+    color: #dc2626;
+    font-size: 13px;
+    margin: 0;
+}
+
+/* Responsive form layout */
+
+@media (max-width: 600px) {
+    .ticketHeader,
+    .formBody {
+        padding: 20px;
+    }
+
+    .formGrid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .fullWidth {
+        grid-column: auto;
+    }
+
+    .ticketFooter {
+        padding: 16px 20px;
+    }
+}
