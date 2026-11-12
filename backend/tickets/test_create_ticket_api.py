@@ -31,7 +31,8 @@ class CreateTicketApiTests(APITestCase):
         self.assertEqual(ticket.priority, 1)
         self.assertEqual(ticket.created_by, self.po)
         self.assertIsNone(ticket.sprint)
-        self.assertIsNone(ticket.assignee)
+        self.assertFalse(ticket.assignees.exists())
+        self.assertFalse(ticket.teams.exists())
 
     def test_new_ticket_goes_to_bottom_of_backlog(self):
         self.post(title="First")
@@ -84,7 +85,9 @@ class CreateTicketApiTests(APITestCase):
             self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
 
     def test_read_only_fields_are_ignored(self):
-        response = self.post(priority=99, status="DONE")
+        response = self.post(priority=99, status="DONE", assignees=[self.po.pk])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
         self.assertEqual(response.data["priority"], 1)
         self.assertEqual(response.data["status"], "TODO")
+        self.assertEqual(response.data["assignees"], [])
+        self.assertEqual(response.data["teams"], [])

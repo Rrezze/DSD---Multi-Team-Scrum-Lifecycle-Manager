@@ -1,7 +1,9 @@
 from django.urls import path
 
-from .views import TicketCreateView
+from .views import BacklogReorderView, TicketDetailView, TicketListCreateView
 
 urlpatterns = [
-    path("tickets/", TicketCreateView.as_view(), name="ticket-create"),
+    path("tickets/", TicketListCreateView.as_view(), name="ticket-list"),
+    path("tickets/reorder/", BacklogReorderView.as_view(), name="ticket-reorder"),
+    path("tickets/<int:pk>/", TicketDetailView.as_view(), name="ticket-detail"),
 ]
