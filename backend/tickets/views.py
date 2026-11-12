@@ -1,7 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Max
-from rest_framework import generics
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from rest_framework import filters, generics
+from rest_framework.exceptions import ValidationError
 
 from .models import Ticket
 from .serializers import TicketSerializer
@@ -11,15 +14,49 @@ from .serializers import TicketSerializer
 DEFAULT_PO_USERNAME = "po"
 
 
-class TicketCreateView(generics.CreateAPIView):
-    """Create a ticket in the product backlog.
+@extend_schema_view(
+    get=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "type", OpenApiTypes.STR, enum=Ticket.Type.values,
+                description="Only tickets of this type, e.g. EPIC for the parent dropdown.",
+            ),
+            OpenApiParameter(
+                "status", OpenApiTypes.STR, enum=Ticket.Status.values,
+                description="Only tickets with this status.",
+            ),
+        ]
+    )
+)
+class TicketListCreateView(generics.ListCreateAPIView):
+    """Product backlog.
 
-    The new ticket goes to the bottom of the backlog (priority = last + 1),
-    starts in TODO, is not in a sprint and is created by the default PO.
+    GET returns the tickets that are not in any sprint, ordered by priority
+    (top of the backlog first). Optional filters: ?type=, ?status= and
+    ?search= (title and description, case-insensitive). They can be combined.
+
+    POST creates a ticket. It goes to the bottom of the backlog
+    (priority = last + 1), starts in TODO, is not in a sprint and is created
+    by the default PO.
     """
 
-    queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["title", "description"]
+
+    def get_queryset(self):
+        queryset = Ticket.objects.filter(sprint__isnull=True)
+        params = self.request.query_params
+        for name, choices in (("type", Ticket.Type), ("status", Ticket.Status)):
+            value = params.get(name)
+            if value is None:
+                continue
+            if value not in choices.values:
+                raise ValidationError(
+                    {name: f"Unknown {name} '{value}'. Use one of: {', '.join(choices.values)}."}
+                )
+            queryset = queryset.filter(**{name: value})
+        return queryset.order_by("priority", "id")
 
     def perform_create(self, serializer):
         creator = get_user_model().objects.get(username=DEFAULT_PO_USERNAME)
