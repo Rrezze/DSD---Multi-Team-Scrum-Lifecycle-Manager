@@ -20,7 +20,8 @@ class TicketModelTests(TestCase):
     def test_new_ticket_starts_in_todo(self):
         ticket = self.make_ticket()
         self.assertEqual(ticket.status, Ticket.Status.TODO)
-        self.assertIsNone(ticket.assignee)
+        self.assertFalse(ticket.assignees.exists())
+        self.assertFalse(ticket.teams.exists())
         self.assertIsNone(ticket.sprint)
 
     def test_story_can_belong_to_epic(self):
