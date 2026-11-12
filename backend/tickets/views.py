@@ -7,7 +7,7 @@ from rest_framework import filters, generics
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from users.models import Team
+from teams.models import Team
 
 from .models import Ticket
 from .serializers import ReorderBacklogSerializer, TicketSerializer, TicketUpdateSerializer
