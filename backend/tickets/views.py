@@ -7,7 +7,7 @@ from rest_framework import filters, generics
 from rest_framework.exceptions import ValidationError
 
 from .models import Ticket
-from .serializers import TicketSerializer
+from .serializers import TicketSerializer, TicketUpdateSerializer
 
 # Created by the users.0002_create_default_po migration.
 # Used as the ticket creator until authentication is added.
@@ -63,3 +63,17 @@ class TicketListCreateView(generics.ListCreateAPIView):
         with transaction.atomic():
             last = Ticket.objects.filter(sprint__isnull=True).aggregate(m=Max("priority"))["m"]
             serializer.save(priority=(last or 0) + 1, created_by=creator)
+
+
+class TicketDetailView(generics.RetrieveUpdateAPIView):
+    """One ticket.
+
+    GET returns the ticket. PATCH edits it: type, title, description,
+    estimate_points, parent and status can be changed. Priority is changed
+    by reordering the backlog, the rest is read-only.
+    """
+
+    queryset = Ticket.objects.all()
+    serializer_class = TicketUpdateSerializer
+    # only partial updates, no PUT
+    http_method_names = ["get", "patch", "head", "options"]
