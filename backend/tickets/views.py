@@ -5,9 +5,10 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import filters, generics
 from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
 from .models import Ticket
-from .serializers import TicketSerializer, TicketUpdateSerializer
+from .serializers import ReorderBacklogSerializer, TicketSerializer, TicketUpdateSerializer
 
 # Created by the users.0002_create_default_po migration.
 # Used as the ticket creator until authentication is added.
@@ -77,3 +78,47 @@ class TicketDetailView(generics.RetrieveUpdateAPIView):
     serializer_class = TicketUpdateSerializer
     # only partial updates, no PUT
     http_method_names = ["get", "patch", "head", "options"]
+
+
+class BacklogReorderView(generics.GenericAPIView):
+    """Save a new order of the product backlog (drag and drop).
+
+    The body has the ids of ALL backlog tickets in the new order, top first.
+    Their priority becomes 1, 2, 3... and the reordered backlog is returned.
+    If a backlog ticket is missing, an id is not in the backlog or an id is
+    repeated, nothing is saved and 400 is returned.
+    """
+
+    serializer_class = ReorderBacklogSerializer
+
+    @extend_schema(request=ReorderBacklogSerializer, responses=TicketSerializer(many=True))
+    def post(self, request):
+        body = ReorderBacklogSerializer(data=request.data)
+        body.is_valid(raise_exception=True)
+        ids = body.validated_data["ticket_ids"]
+        if len(ids) != len(set(ids)):
+            raise ValidationError({"ticket_ids": "A ticket is in the list more than once."})
+
+        with transaction.atomic():
+            backlog = {
+                ticket.pk: ticket
+                for ticket in Ticket.objects.select_for_update().filter(sprint__isnull=True)
+            }
+            missing = sorted(set(backlog) - set(ids))
+            not_in_backlog = sorted(set(ids) - set(backlog))
+            if missing or not_in_backlog:
+                problems = []
+                if missing:
+                    problems.append(f"missing backlog tickets {missing}")
+                if not_in_backlog:
+                    problems.append(f"tickets not in the backlog {not_in_backlog}")
+                raise ValidationError(
+                    {"ticket_ids": "The list must have all backlog tickets exactly once: "
+                                   + ", ".join(problems) + "."}
+                )
+            ordered = [backlog[ticket_id] for ticket_id in ids]
+            for position, ticket in enumerate(ordered, start=1):
+                ticket.priority = position
+            Ticket.objects.bulk_update(ordered, ["priority"])
+
+        return Response(TicketSerializer(ordered, many=True).data)

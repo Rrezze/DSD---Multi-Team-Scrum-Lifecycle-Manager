@@ -85,3 +85,9 @@ class TicketUpdateSerializer(TicketSerializer):
         read_only_fields = [
             f for f in TicketSerializer.Meta.read_only_fields if f != "status"
         ]
+
+
+class ReorderBacklogSerializer(serializers.Serializer):
+    """The new order of the whole backlog, top first."""
+
+    ticket_ids = serializers.ListField(child=serializers.IntegerField(), allow_empty=True)
