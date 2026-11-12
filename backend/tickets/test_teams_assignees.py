@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from users.models import Team
 
-from .models import Sprint, SprintMembership, Ticket
+from .models import Sprint, TeamMembership, Ticket
 
 User = get_user_model()
 
@@ -39,7 +39,7 @@ class TicketTeamsAndAssigneesTests(TestCase):
         self.assertEqual(list(Ticket.objects.filter(teams__isnull=True)), [self.ticket])
 
 
-class SprintMembershipTests(TestCase):
+class TeamMembershipTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="ana")
         self.team_a = Team.objects.create(name="Team A")
@@ -52,26 +52,40 @@ class SprintMembershipTests(TestCase):
         )
 
     def test_default_availability_is_80_hours(self):
-        membership = SprintMembership.objects.create(
+        membership = TeamMembership.objects.create(
             sprint=self.sprint_1, team=self.team_a, user=self.user
         )
         self.assertEqual(membership.available_hours, 80)
 
+    def test_default_role_is_developer(self):
+        membership = TeamMembership.objects.create(
+            sprint=self.sprint_1, team=self.team_a, user=self.user
+        )
+        self.assertEqual(membership.role, TeamMembership.Role.DEVELOPER)
+
+    def test_user_can_be_scrum_master_in_one_sprint_and_developer_in_the_next(self):
+        TeamMembership.objects.create(sprint=self.sprint_1, team=self.team_a, user=self.user,
+                                      role=TeamMembership.Role.SCRUM_MASTER)
+        TeamMembership.objects.create(sprint=self.sprint_2, team=self.team_a, user=self.user)
+        roles = list(self.user.team_memberships.order_by("sprint__start_date")
+                     .values_list("role", flat=True))
+        self.assertEqual(roles, ["SCRUM_MASTER", "DEVELOPER"])
+
     def test_user_can_be_in_only_one_team_per_sprint(self):
-        SprintMembership.objects.create(sprint=self.sprint_1, team=self.team_a, user=self.user)
+        TeamMembership.objects.create(sprint=self.sprint_1, team=self.team_a, user=self.user)
         with self.assertRaises(IntegrityError), transaction.atomic():
-            SprintMembership.objects.create(
+            TeamMembership.objects.create(
                 sprint=self.sprint_1, team=self.team_b, user=self.user
             )
 
     def test_changing_team_in_new_sprint_keeps_past_sprint(self):
-        SprintMembership.objects.create(sprint=self.sprint_1, team=self.team_a, user=self.user)
-        SprintMembership.objects.create(
+        TeamMembership.objects.create(sprint=self.sprint_1, team=self.team_a, user=self.user)
+        TeamMembership.objects.create(
             sprint=self.sprint_2, team=self.team_b, user=self.user, available_hours=76
         )
-        past = SprintMembership.objects.get(sprint=self.sprint_1, user=self.user)
+        past = TeamMembership.objects.get(sprint=self.sprint_1, user=self.user)
         self.assertEqual(past.team, self.team_a)
         self.assertEqual(past.available_hours, 80)
         self.assertEqual(
-            list(self.sprint_2.memberships.values_list("team__name", flat=True)), ["Team B"]
+            list(self.sprint_2.team_memberships.values_list("team__name", flat=True)), ["Team B"]
         )

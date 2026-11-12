@@ -88,23 +88,29 @@ class Ticket(models.Model):
         return f"[{self.type}] {self.title}"
 
 
-class SprintMembership(models.Model):
-    """Which team a user is in for a sprint, and how many hours they can work.
+class TeamMembership(models.Model):
+    """Which team a user is in for a sprint, their role in the team and how
+    many hours they can work.
 
     Kept per sprint, so changing teams later doesn't change past sprints.
     """
 
+    class Role(models.TextChoices):
+        DEVELOPER = "DEVELOPER", "Developer"
+        SCRUM_MASTER = "SCRUM_MASTER", "Scrum Master"
+
     sprint = models.ForeignKey(
-        Sprint, on_delete=models.CASCADE, related_name="memberships"
+        Sprint, on_delete=models.CASCADE, related_name="team_memberships"
     )
     team = models.ForeignKey(
-        "users.Team", on_delete=models.CASCADE, related_name="sprint_memberships"
+        "users.Team", on_delete=models.CASCADE, related_name="team_memberships"
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="sprint_memberships",
+        related_name="team_memberships",
     )
+    role = models.CharField(max_length=16, choices=Role.choices, default=Role.DEVELOPER)
     # 2 weeks x 8h by default
     available_hours = models.PositiveSmallIntegerField(default=80)
 
