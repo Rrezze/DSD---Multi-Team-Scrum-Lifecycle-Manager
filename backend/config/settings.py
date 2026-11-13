@@ -19,6 +19,8 @@ INSTALLED_APPS = [
     "drf_spectacular",
     # our apps
     "users",
+    "sprints",
+    "teams",
     "tickets",
 ]
 

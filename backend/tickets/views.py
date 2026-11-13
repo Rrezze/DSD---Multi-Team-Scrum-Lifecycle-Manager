@@ -7,6 +7,8 @@ from rest_framework import filters, generics
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from teams.models import Team
+
 from .models import Ticket
 from .serializers import ReorderBacklogSerializer, TicketSerializer, TicketUpdateSerializer
 
@@ -26,6 +28,11 @@ DEFAULT_PO_USERNAME = "po"
                 "status", OpenApiTypes.STR, enum=Ticket.Status.values,
                 description="Only tickets with this status.",
             ),
+            OpenApiParameter(
+                "team", OpenApiTypes.STR,
+                description="Only tickets of this team (team id), or 'none' for the "
+                            "shared pool (tickets without a team).",
+            ),
         ]
     )
 )
@@ -33,8 +40,9 @@ class TicketListCreateView(generics.ListCreateAPIView):
     """Product backlog.
 
     GET returns the tickets that are not in any sprint, ordered by priority
-    (top of the backlog first). Optional filters: ?type=, ?status= and
-    ?search= (title and description, case-insensitive). They can be combined.
+    (top of the backlog first). Optional filters: ?type=, ?status=, ?team=
+    (a team id, or "none" for tickets without a team) and ?search= (title and
+    description, case-insensitive). They can be combined.
 
     POST creates a ticket. It goes to the bottom of the backlog
     (priority = last + 1), starts in TODO, is not in a sprint and is created
@@ -46,7 +54,9 @@ class TicketListCreateView(generics.ListCreateAPIView):
     search_fields = ["title", "description"]
 
     def get_queryset(self):
-        queryset = Ticket.objects.filter(sprint__isnull=True)
+        queryset = Ticket.objects.filter(sprint__isnull=True).prefetch_related(
+            "assignees", "teams"
+        )
         params = self.request.query_params
         for name, choices in (("type", Ticket.Type), ("status", Ticket.Status)):
             value = params.get(name)
@@ -57,6 +67,17 @@ class TicketListCreateView(generics.ListCreateAPIView):
                     {name: f"Unknown {name} '{value}'. Use one of: {', '.join(choices.values)}."}
                 )
             queryset = queryset.filter(**{name: value})
+
+        team = params.get("team")
+        if team is not None:
+            if team == "none":
+                queryset = queryset.filter(teams__isnull=True)
+            elif team.isdigit() and Team.objects.filter(pk=int(team)).exists():
+                queryset = queryset.filter(teams__id=int(team))
+            else:
+                raise ValidationError(
+                    {"team": f"Unknown team '{team}'. Use a team id or 'none'."}
+                )
         return queryset.order_by("priority", "id")
 
     def perform_create(self, serializer):

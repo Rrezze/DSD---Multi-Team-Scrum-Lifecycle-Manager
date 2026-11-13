@@ -2,7 +2,10 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import Sprint, Ticket
+from sprints.models import Sprint
+from teams.models import Team
+
+from .models import Ticket
 
 URL = "/api/tickets/"
 
@@ -82,3 +85,50 @@ class BacklogListApiTests(APITestCase):
         response = self.client.post(URL, {"type": "TASK", "title": "new"}, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
         self.assertEqual(self.titles(), ["existing", "new"])
+
+
+class BacklogTeamFilterApiTests(APITestCase):
+    def setUp(self):
+        self.po = get_user_model().objects.get(username="po")
+        self.team_a = Team.objects.create(name="Team A")
+        self.team_b = Team.objects.create(name="Team B")
+        self.only_a = self.make_ticket("only A", 1, teams=[self.team_a])
+        self.shared = self.make_ticket("A and B", 2, teams=[self.team_a, self.team_b])
+        self.only_b = self.make_ticket("only B", 3, type=Ticket.Type.TASK, teams=[self.team_b])
+        self.pool = self.make_ticket("no team", 4)
+
+    def make_ticket(self, title, priority, teams=(), **kwargs):
+        data = {"type": Ticket.Type.STORY, "title": title, "priority": priority,
+                "created_by": self.po}
+        data.update(kwargs)
+        ticket = Ticket.objects.create(**data)
+        ticket.teams.set(teams)
+        return ticket
+
+    def titles(self, query):
+        response = self.client.get(URL + query)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        return [ticket["title"] for ticket in response.data]
+
+    def test_filter_by_team(self):
+        self.assertEqual(self.titles(f"?team={self.team_a.pk}"), ["only A", "A and B"])
+
+    def test_ticket_shared_by_two_teams_is_listed_once(self):
+        self.assertEqual(self.titles(f"?team={self.team_b.pk}"), ["A and B", "only B"])
+        self.assertEqual(len(self.titles("")), 4)
+
+    def test_team_none_returns_the_shared_pool(self):
+        self.assertEqual(self.titles("?team=none"), ["no team"])
+
+    def test_team_filter_can_be_combined(self):
+        self.assertEqual(self.titles(f"?team={self.team_b.pk}&type=TASK"), ["only B"])
+
+    def test_response_shows_teams(self):
+        response = self.client.get(URL + f"?team={self.team_b.pk}&type=TASK")
+        self.assertEqual(response.data[0]["teams"], [self.team_b.pk])
+
+    def test_unknown_team_is_rejected(self):
+        for value in ["abc", "9999"]:
+            response = self.client.get(URL + f"?team={value}")
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn("team", response.data)
