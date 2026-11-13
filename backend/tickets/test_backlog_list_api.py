@@ -2,9 +2,10 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from users.models import Team
+from sprints.models import Sprint
+from teams.models import Team
 
-from .models import Sprint, Ticket
+from .models import Ticket
 
 URL = "/api/tickets/"
 

@@ -2,7 +2,9 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import Sprint, Ticket
+from sprints.models import Sprint
+
+from .models import Ticket
 
 
 class TicketDetailApiTests(APITestCase):
