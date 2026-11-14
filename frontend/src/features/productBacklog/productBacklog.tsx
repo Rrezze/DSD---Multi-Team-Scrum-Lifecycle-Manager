@@ -101,11 +101,6 @@ export default function ProductBacklog() {
         if (!title.trim()) {
             newErrors.title = "Ticket title is required.";
         }
-
-        if (!description.trim()) {
-            newErrors.description = "Description is required.";
-        }
-
         if (!estimatePoints.trim()) {
             newErrors.estimatePoints = "Estimate points are required.";
         } else {
@@ -367,7 +362,7 @@ export default function ProductBacklog() {
                                 className={`${styles.formGroup} ${styles.fullWidth}`}
                             >
                                 <label htmlFor="ticket-description">
-                                    Description <span>*</span>
+                                    Description
                                 </label>
 
                                 <textarea
@@ -378,22 +373,7 @@ export default function ProductBacklog() {
                                     onChange={(event) =>
                                         setDescription(event.target.value)
                                     }
-                                    aria-invalid={!!errors.description}
-                                    aria-describedby={
-                                        errors.description
-                                            ? "description-error"
-                                            : undefined
-                                    }
-                                />
-
-                                {errors.description && (
-                                    <small
-                                        id="description-error"
-                                        className={styles.error}
-                                    >
-                                        {errors.description}
-                                    </small>
-                                )}
+                                />  
                             </div>
 
                         </div>
