@@ -27,5 +27,5 @@ export interface CreateTicketPayload {
  * Stores validation errors associated with form fields.
  */
 export type TicketFormErrors = Partial<
-    Record<"title" | "description" | "estimatePoints", string>
+    Record<"title" | "estimatePoints", string>
 >;

@@ -145,8 +145,8 @@ describe("ProductBacklog", () => {
             ).toBeInTheDocument();
 
             expect(
-                screen.getByText("Description is required.")
-            ).toBeInTheDocument();
+                screen.queryByText("Description is required.")
+            ).not.toBeInTheDocument();
 
             expect(
                 screen.getByText("Estimate points are required.")
