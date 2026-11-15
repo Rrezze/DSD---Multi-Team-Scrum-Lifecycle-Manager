@@ -26,7 +26,7 @@ import { reorderBacklogTickets } from "../../productBacklogApi";
 
 import Notification from "../../../../components/notification/notification";
 
-import styles from "./ProductBacklogTable.module.css";
+import styles from "./productBacklogTable.module.css";
 
 interface ProductBacklogTableProps {
     tickets: BacklogTicket[];
