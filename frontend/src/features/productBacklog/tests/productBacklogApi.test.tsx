@@ -3,11 +3,12 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { http, HttpResponse } from "msw";
 
 import { server } from "../../../tests/mocks/server";
-import type { CreateTicketPayload } from "../productBacklogTypes";
+import type { CreateTicketPayload, UpdateTicketPayload,} from "../productBacklogTypes";
 import {
     createTicket,
     getBacklogTickets,
     reorderBacklogTickets,
+    updateTicket,
 } from "../productBacklogApi";
 import API_ENDPOINTS from "../../../constants/apiEndPoints";
 import {
@@ -192,5 +193,104 @@ describe("createTicket", () => {
         await expect(reorderBacklogTickets([2, 1])).rejects.toThrow(
             "Unable to reorder tickets."
         );
+    });
+});
+
+describe("updateTicket", () => {
+    const ticketId = 1;
+
+    const updateData: UpdateTicketPayload = {
+        type: "STORY",
+        title: "Implement login page",
+        description: "Implement user authentication",
+        estimate_points: 8,
+        status: "TODO",
+        parent: null,
+        teams:[],
+
+    };
+
+    beforeEach(() => {
+        server.resetHandlers();
+    });
+
+    it("sends a PATCH request to the correct ticket endpoint", async () => {
+        let receivedMethod = "";
+        let receivedPayload: unknown;
+
+        server.use(
+            http.patch(
+                API_ENDPOINTS.TICKET_DETAIL(ticketId),
+                async ({ request }) => {
+                    receivedMethod = request.method;
+                    receivedPayload = await request.json();
+
+                    return HttpResponse.json(
+                        {
+                            ...backlogTickets[0],
+                            ...updateData,
+                        },
+                        { status: 200 }
+                    );
+                }
+            )
+        );
+
+        await updateTicket(ticketId, updateData);
+
+        expect(receivedMethod).toBe("PATCH");
+        expect(receivedPayload).toEqual(updateData);
+    });
+
+    it("returns the updated ticket when the request succeeds", async () => {
+        const updatedTicket = {
+            ...backlogTickets[0],
+            ...updateData,
+        };
+
+        server.use(
+            http.patch(
+                API_ENDPOINTS.TICKET_DETAIL(ticketId),
+                () => HttpResponse.json(updatedTicket, { status: 200 })
+            )
+        );
+
+        await expect(
+            updateTicket(ticketId, updateData)
+        ).resolves.toEqual(updatedTicket);
+    });
+
+    it("throws the backend validation message when the update fails", async () => {
+        server.use(
+            http.patch(
+                API_ENDPOINTS.TICKET_DETAIL(ticketId),
+                () =>
+                    HttpResponse.json(
+                        { title: ["This field is required."] },
+                        { status: 400 }
+                    )
+            )
+        );
+
+        await expect(
+            updateTicket(ticketId, updateData)
+        ).rejects.toThrow("title: This field is required.");
+    });
+
+    it("throws the server error message when the update fails", async () => {
+        server.use(
+            http.patch(
+                API_ENDPOINTS.TICKET_DETAIL(ticketId),
+                () =>
+                    HttpResponse.json(
+                        { detail: "Unable to update ticket." },
+                        { status: 500 }
+                    )
+            )
+        );
+
+        await expect(
+            updateTicket(ticketId, updateData)
+        ).rejects.toThrow("Unable to update ticket.");
     });
 });

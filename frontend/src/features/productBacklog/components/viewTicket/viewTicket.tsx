@@ -8,11 +8,13 @@ import styles from "./viewTicket.module.css";
 interface TicketDetailsProps {
     ticket: BacklogTicket | null;
     onClose: () => void;
+    onEdit: (ticket: BacklogTicket) => void;
 }
 
 export default function TicketDetails({
     ticket,
-    onClose
+    onClose,
+    onEdit
 }: TicketDetailsProps) {
     return (
         <Modal
@@ -31,12 +33,10 @@ export default function TicketDetails({
                                 Ticket #{ticket.id} · {ticket.title}
                             </h2>
                         </div>
-
-                        <Button type="button">
+                        <Button type="button" onClick={() => onEdit(ticket)}>
                             Edit Ticket
                         </Button>
                     </div>
-
                     <div className={styles.details}>
                         <div className={styles.field}>
                             <label>Title</label>

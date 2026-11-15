@@ -13,6 +13,12 @@ describe("ProductBacklog", () => {
 
     beforeEach(() => {
         server.resetHandlers();
+        server.use(
+        http.get(API_ENDPOINTS.TEAMS, () => {
+            return HttpResponse.json([]);
+        })
+        );
+
     });
 
     /**
@@ -32,7 +38,7 @@ describe("ProductBacklog", () => {
             target: { value: "Implement login" },
         });
 
-        fireEvent.change(screen.getByLabelText(/Description/i), {
+        fireEvent.change(screen.getByLabelText(/^Description$/i), {
             target: { value: "Implement user authentication" },
         });
 
@@ -107,7 +113,7 @@ describe("ProductBacklog", () => {
                 http.get(API_ENDPOINTS.TICKETS, () => {
                     requestCount += 1;
 
-                    if (requestCount === 1) {
+                    if (requestCount === 2) {
                         return HttpResponse.json(
                             { detail: "Unable to load tickets." },
                             { status: 500 }
@@ -123,15 +129,14 @@ describe("ProductBacklog", () => {
             render(<ProductBacklog />);
 
             expect(await screen.findByRole("alert")).toHaveTextContent(
-                "Unable to load tickets."
-            );
+                "Unable to load tickets.");
 
             fireEvent.click(screen.getByRole("button", { name: "Retry" }));
 
             expect(
                 await screen.findByText("Implement login")
             ).toBeInTheDocument();
-            expect(requestCount).toBe(2);
+            expect(requestCount).toBe(3);
         });
 
     });
@@ -209,7 +214,7 @@ describe("ProductBacklog", () => {
             ).toHaveValue("");
 
             expect(
-                screen.getByLabelText(/Description/i)
+                screen.getByLabelText(/^Description$/i)
             ).toHaveValue("");
 
             expect(
@@ -223,7 +228,7 @@ describe("ProductBacklog", () => {
             openModal();
 
             fireEvent.change(
-                screen.getByLabelText(/Ticket type/i),
+                screen.getByLabelText(/^Ticket type\s*\*/i),
                 { target: { value: "EPIC" } }
             );
 
@@ -262,7 +267,7 @@ describe("ProductBacklog", () => {
                 target: { value: "Implement login" },
             });
 
-            fireEvent.change(screen.getByLabelText(/Description/i), {
+            fireEvent.change(screen.getByLabelText(/^Description$/i), {
                 target: { value: "Implement authentication" },
             });
 
@@ -298,7 +303,6 @@ describe("ProductBacklog", () => {
                     );
                 })
             );
-
             render(<ProductBacklog />);
 
             openModal();
@@ -404,14 +408,14 @@ describe("ProductBacklog", () => {
                 screen.getByRole("button", { name: "Create ticket" })
             );
 
-            await screen.findByRole("alert");
+            await screen.findByText("Server error", { exact: true });
 
             expect(
                 screen.getByLabelText(/Ticket title/i)
             ).toHaveValue("Implement login");
 
             expect(
-                screen.getByLabelText(/Description/i)
+                screen.getByLabelText(/^Description$/i)
             ).toHaveValue("Implement user authentication");
 
             expect(

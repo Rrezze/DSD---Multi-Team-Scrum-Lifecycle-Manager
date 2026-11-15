@@ -30,17 +30,19 @@ import styles from "./productBacklogTable.module.css";
 
 interface ProductBacklogTableProps {
     tickets: BacklogTicket[];
+    parentTickets: BacklogTicket[];
     onTicketClick: (ticket: BacklogTicket) => void;
 }
 
 interface SortableTicketRowProps {
     ticket: BacklogTicket;
+    parentTickets: BacklogTicket[];
     onTicketClick: (ticket: BacklogTicket) => void;
 }
 /**
  * A single sortable ticket row.
  */
-function SortableTicketRow({ ticket, onTicketClick }: SortableTicketRowProps) {
+function SortableTicketRow({ ticket, parentTickets, onTicketClick }: SortableTicketRowProps) {
     const {
         attributes,
         listeners,
@@ -101,7 +103,17 @@ function SortableTicketRow({ ticket, onTicketClick }: SortableTicketRowProps) {
 
             {/* Parent ticket */}
             <td>
-                {ticket.parent ?? "-"}
+                {ticket.parent !== null
+                    ? (() => {
+                    const parentTicket = parentTickets.find(
+                    (item) => item.id === ticket.parent
+            );
+
+            return parentTicket
+                ? `${parentTicket.id} — ${parentTicket.title}`
+                : `#${ticket.parent}`;
+        })()
+        : "-"}
             </td>
 
             {/* Assigned team */}
@@ -128,6 +140,7 @@ function SortableTicketRow({ ticket, onTicketClick }: SortableTicketRowProps) {
 
 export default function ProductBacklogTable({
     tickets,
+    parentTickets,
     onTicketClick
 }: ProductBacklogTableProps) {
     const [orderedTickets, setOrderedTickets] =
@@ -284,6 +297,7 @@ export default function ProductBacklogTable({
                                 <SortableTicketRow
                                     key={ticket.id}
                                     ticket={ticket}
+                                    parentTickets={parentTickets}
                                     onTicketClick={onTicketClick}
                                 />
                             ))}
