@@ -91,7 +91,8 @@ class TicketDetailView(generics.RetrieveUpdateAPIView):
     """One ticket.
 
     GET returns the ticket. PATCH edits it: type, title, description,
-    estimate_points, parent and status can be changed. Priority is changed
+    estimate_points, parent, status and teams can be changed
+    (teams: [] puts the ticket back in the shared pool). Priority is changed
     by reordering the backlog, the rest is read-only.
     """
 
