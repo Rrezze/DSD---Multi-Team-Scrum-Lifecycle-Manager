@@ -4,8 +4,16 @@ import { http, HttpResponse } from "msw";
 
 import { server } from "../../../tests/mocks/server";
 import type { CreateTicketPayload } from "../productBacklogTypes";
-import { createTicket } from "../productBacklogApi";
+import {
+    createTicket,
+    getBacklogTickets,
+    reorderBacklogTickets,
+} from "../productBacklogApi";
 import API_ENDPOINTS from "../../../constants/apiEndPoints";
+import {
+    backlogTickets,
+    reorderTicketRequest,
+} from "./productBacklog.fixtures";
 
 describe("createTicket", () => {
     const ticketData: CreateTicketPayload = {
@@ -138,6 +146,51 @@ describe("createTicket", () => {
 
         await expect(createTicket(ticketData)).rejects.toThrow(
             "Unable to connect to the server. Please check your connection and try again."
+        );
+    });
+
+    it("fetches backlog tickets sorted by priority", async () => {
+        const expectedTickets = [...backlogTickets].sort(
+            (a, b) => a.priority - b.priority
+        );
+
+        server.use(
+            http.get(API_ENDPOINTS.TICKETS, () => {
+                return HttpResponse.json(backlogTickets, { status: 200 });
+            })
+        );
+
+        await expect(getBacklogTickets()).resolves.toEqual(expectedTickets);
+    });
+
+    it("sends a reorder request with the correct ticket ids", async () => {
+        let receivedPayload: unknown;
+
+        server.use(
+            http.post(API_ENDPOINTS.TICKETS_REORDER, async ({ request }) => {
+                receivedPayload = await request.json();
+
+                return HttpResponse.json(backlogTickets, { status: 200 });
+            })
+        );
+
+        await reorderBacklogTickets(reorderTicketRequest.ticket_ids);
+
+        expect(receivedPayload).toEqual(reorderTicketRequest);
+    });
+
+    it("throws a backend detail message when reorder fails", async () => {
+        server.use(
+            http.post(API_ENDPOINTS.TICKETS_REORDER, () => {
+                return HttpResponse.json(
+                    { detail: "Unable to reorder tickets." },
+                    { status: 400 }
+                );
+            })
+        );
+
+        await expect(reorderBacklogTickets([2, 1])).rejects.toThrow(
+            "Unable to reorder tickets."
         );
     });
 });

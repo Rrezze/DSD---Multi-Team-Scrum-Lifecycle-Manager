@@ -29,3 +29,27 @@ export interface CreateTicketPayload {
 export type TicketFormErrors = Partial<
     Record<"title" | "estimatePoints", string>
 >;
+
+/**
+ * Request payload used to reorder tickets in the backlog.
+ */
+export interface ReorderBacklogTicketsPayload {
+    ticket_ids: number[];
+}
+
+export interface BacklogTicket {
+    id: number;
+    type: TicketType;
+    title: string;
+    description: string;
+    estimate_points: number;
+    parent: number | null;
+    priority: number;
+    status: string;
+    sprint: number | null;
+    assignees: number[];
+    teams: number[];
+    created_by: number;
+    created_at: string;
+    updated_at: string;
+}

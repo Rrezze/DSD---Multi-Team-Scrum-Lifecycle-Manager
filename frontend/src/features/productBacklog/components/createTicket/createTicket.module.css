@@ -7,7 +7,7 @@
 }
 
 .eyebrow {
-    color: #2563eb;
+    color: var(--color-primary);
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 1px;
@@ -22,7 +22,7 @@
 
 .subtitle {
     margin: 0;
-    color: #64748b;
+    color: var(--color-text-muted);
     font-size: 13px;
 }
 
@@ -48,13 +48,13 @@
 }
 
 .formGroup label {
-    color: #334155;
+    color: var(--color-text-secondary);
     font-size: 13px;
     font-weight: 600;
 }
 
 .formGroup label span {
-    color: #dc2626;
+    color: var(--color-danger);
 }
 
 .formGroup input,
@@ -65,8 +65,8 @@
     padding: 11px 12px;
     border: 1px solid #dbe2ea;
     border-radius: 8px;
-    background: #ffffff;
-    color: #1e293b;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
     font-family: inherit;
     font-size: 13px;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -85,7 +85,7 @@
 
 .formGroup input::placeholder,
 .formGroup textarea::placeholder {
-    color: #94a3b8;
+    color: var(--color-text-subtle);
 }
 
 .formGroup input:focus,
@@ -109,19 +109,19 @@
     top: 50%;
     right: 13px;
     transform: translateY(-50%);
-    color: #94a3b8;
+    color: var(--color-text-subtle);
     font-size: 12px;
     pointer-events: none;
 }
 
 .formGroup select:disabled {
-    background: #f8fafc;
-    color: #94a3b8;
+    background: var(--color-surface-subtle);
+    color: var(--color-text-subtle);
     cursor: not-allowed;
 }
 
 .formGroup small {
-    color: #94a3b8;
+    color: var(--color-text-subtle);
     font-size: 11px;
 }
 
@@ -133,18 +133,18 @@
     gap: 10px;
     padding: 18px 28px;
     border-top: 1px solid #edf0f4;
-    background: #ffffff;
+    background: var(--color-surface);
 }
 
 .error {
-    color: #dc2626;
+    color: var(--color-danger);
     font-size: 12px;
     margin-top: 4px;
 }
 
 .apiError {
     flex-basis: 100%;
-    color: #dc2626;
+    color: var(--color-danger);
     font-size: 13px;
     margin: 0;
 }

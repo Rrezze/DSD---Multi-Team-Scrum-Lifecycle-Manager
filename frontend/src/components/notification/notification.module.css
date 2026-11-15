@@ -48,7 +48,7 @@
 
 /* Success notification */
 .success {
-    color: #166534;
+    color: var(--color-success);
     background-color: #f0fdf4;
     border-color: #bbf7d0;
 }
@@ -70,7 +70,7 @@
 /* Information notification */
 .info {
     color: #1e40af;
-    background-color: #eff6ff;
+    background-color: var(--color-primary-surface);
     border-color: #bfdbfe;
 }
 

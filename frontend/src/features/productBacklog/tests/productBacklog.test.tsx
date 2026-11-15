@@ -6,6 +6,8 @@ import { http, HttpResponse } from "msw";
 
 import ProductBacklog from "../productBacklog";
 import { server } from "../../../tests/mocks/server";
+import API_ENDPOINTS from "../../../constants/apiEndPoints";
+import { backlogTickets } from "./productBacklog.fixtures";
 
 describe("ProductBacklog", () => {
 
@@ -53,6 +55,109 @@ describe("ProductBacklog", () => {
 
         it("should not display the modal initially", () => {
             render(<ProductBacklog />);
+
+            expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+        });
+
+    });
+
+    describe("Backlog loading", () => {
+
+        it("should show a loading message while tickets are being fetched", () => {
+            render(<ProductBacklog />);
+
+            expect(
+                screen.getByText("Loading backlog tickets...")
+            ).toBeInTheDocument();
+        });
+
+        it("should render fetched tickets in the backlog table", async () => {
+            render(<ProductBacklog />);
+
+            expect(
+                await screen.findByText("Implement login")
+            ).toBeInTheDocument();
+            expect(
+                screen.getByText("Set up CI pipeline")
+            ).toBeInTheDocument();
+            expect(screen.getByText("TODO")).toBeInTheDocument();
+            expect(screen.getByText("IN PROGRESS")).toBeInTheDocument();
+        });
+
+        it("should display an empty state when the backlog has no tickets", async () => {
+            server.use(
+                http.get(API_ENDPOINTS.TICKETS, () => {
+                    return HttpResponse.json([], { status: 200 });
+                })
+            );
+
+            render(<ProductBacklog />);
+
+            expect(
+                await screen.findByText(
+                    "No tickets found in the product backlog."
+                )
+            ).toBeInTheDocument();
+        });
+
+        it("should allow retrying after a fetch failure", async () => {
+            let requestCount = 0;
+
+            server.use(
+                http.get(API_ENDPOINTS.TICKETS, () => {
+                    requestCount += 1;
+
+                    if (requestCount === 1) {
+                        return HttpResponse.json(
+                            { detail: "Unable to load tickets." },
+                            { status: 500 }
+                        );
+                    }
+
+                    return HttpResponse.json(backlogTickets, {
+                        status: 200,
+                    });
+                })
+            );
+
+            render(<ProductBacklog />);
+
+            expect(await screen.findByRole("alert")).toHaveTextContent(
+                "Unable to load tickets."
+            );
+
+            fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+            expect(
+                await screen.findByText("Implement login")
+            ).toBeInTheDocument();
+            expect(requestCount).toBe(2);
+        });
+
+    });
+
+    describe("Ticket details", () => {
+
+        it("should open a selected ticket's details and close the dialog", async () => {
+            render(<ProductBacklog />);
+
+            fireEvent.click(await screen.findByText("Implement login"));
+
+            const dialog = screen.getByRole("dialog");
+            expect(dialog).toHaveTextContent("TICKET #1");
+            expect(
+                screen.getByRole("heading", {
+                    name: "TICKET #1 · IMPLEMENT LOGIN",
+                })
+            ).toBeInTheDocument();
+            expect(dialog).toHaveTextContent(
+                "Implement user authentication"
+            );
+            expect(dialog).toHaveTextContent("STORY");
+
+            fireEvent.click(
+                screen.getByRole("button", { name: "Close modal" })
+            );
 
             expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
         });

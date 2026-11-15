@@ -1,3 +1,9 @@
+.page {
+    width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+}
+/* Product Backlog page header layout */
 .header {
     display: flex;
     justify-content: space-between;
@@ -8,7 +14,7 @@
 }
 
 .createButton {
-    background-color: #2563eb;
+    background-color: var(--color-primary);
     color: white;
     border: none;
     border-radius: 9px;
@@ -20,7 +26,7 @@
 }
 
 .createButton:hover {
-    background-color: #1d4ed8;
+    background-color: var(--color-primary-hover);
 }
 
 .createButton:focus-visible {
@@ -31,8 +37,8 @@
 .successMessage {
     display: block;
     width: fit-content;
-    background-color: #dcfce7;
-    color: #166534;
+    background-color: var(--color-success-surface);
+    color: var(--color-success);
     border: 1px solid #86efac;
     border-radius: 8px;
     padding: 8px 14px;
