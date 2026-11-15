@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.test import TestCase
+from rest_framework import status
+from rest_framework.test import APITestCase
 
 from sprints.models import Sprint
 
@@ -59,3 +61,27 @@ class TeamMembershipTests(TestCase):
         self.assertEqual(
             list(self.sprint_2.team_memberships.values_list("team__name", flat=True)), ["Team B"]
         )
+
+
+class TeamListApiTests(APITestCase):
+    def test_empty_list(self):
+        response = self.client.get("/api/teams/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, [])
+
+    def test_lists_all_teams_ordered_by_name(self):
+        Team.objects.create(name="Team B", description="Backend")
+        Team.objects.create(name="Team A")
+        Team.objects.create(name="Old team", is_active=False)
+        response = self.client.get("/api/teams/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual([t["name"] for t in response.data], ["Old team", "Team A", "Team B"])
+        self.assertEqual(
+            set(response.data[0].keys()), {"id", "name", "description", "is_active"}
+        )
+        self.assertFalse(response.data[0]["is_active"])
+        self.assertEqual(response.data[2]["description"], "Backend")
+
+    def test_read_only(self):
+        response = self.client.post("/api/teams/", {"name": "X"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)

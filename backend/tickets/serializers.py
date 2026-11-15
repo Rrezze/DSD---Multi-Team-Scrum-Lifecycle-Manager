@@ -79,14 +79,26 @@ class TicketSerializer(serializers.ModelSerializer):
 
 
 class TicketUpdateSerializer(TicketSerializer):
-    """Used for editing a ticket. Same as TicketSerializer, but status can be
-    changed too (e.g. moving the ticket on the team board). Priority is only
-    changed by reordering the backlog."""
+    """Used for editing a ticket. Same as TicketSerializer, but status and
+    teams can be changed too (e.g. moving the ticket on the team board or
+    sharing it with another team). Priority is only changed by reordering
+    the backlog."""
 
     class Meta(TicketSerializer.Meta):
         read_only_fields = [
-            f for f in TicketSerializer.Meta.read_only_fields if f != "status"
+            f for f in TicketSerializer.Meta.read_only_fields
+            if f not in ("status", "teams")
         ]
+
+    def validate_teams(self, teams):
+        # An empty list means the ticket goes back to the shared pool.
+        # A deactivated team can't be added, but a ticket can keep one it
+        # already has.
+        current = set(self.instance.teams.values_list("pk", flat=True)) if self.instance else set()
+        for team in teams:
+            if not team.is_active and team.pk not in current:
+                raise serializers.ValidationError(f'Team "{team.name}" is not active.')
+        return teams
 
 
 class ReorderBacklogSerializer(serializers.Serializer):
