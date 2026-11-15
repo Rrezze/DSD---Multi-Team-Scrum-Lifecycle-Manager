@@ -28,7 +28,7 @@ export default function TicketDetails({
                                 VIEW TICKET
                             </p>
                             <h2 id="ticket-details-title" className={styles.title}>
-                                TICKET #{ticket.id} · {ticket.title.toUpperCase()}
+                                Ticket #{ticket.id} · {ticket.title}
                             </h2>
                         </div>
 
@@ -47,18 +47,14 @@ export default function TicketDetails({
 
                         <div className={styles.field}>
                             <label>Ticket type</label>
-                            <p className={styles.fieldValue}>
-                                <span
-                                    className={`${styles.typeBadge} ${styles[ticket.type.toLowerCase()]}`}
-                                >
-                                    {ticket.type}
-                                </span>
+                            <p className={`${styles.fieldValue} ${styles.selectValue}`}>
+                                {ticket.type}
                             </p>
                         </div>
 
                         <div className={`${styles.field} ${styles.descriptionField}`}>
                             <label>Description</label>
-                            <p className={styles.descriptionValue}>
+                            <p className={`${styles.descriptionValue} ${!ticket.description ? styles.placeholder : ""}`}>
                                 {ticket.description || "No description provided."}
                             </p>
                         </div>

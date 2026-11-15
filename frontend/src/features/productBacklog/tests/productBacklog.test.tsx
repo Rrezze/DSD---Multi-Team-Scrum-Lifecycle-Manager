@@ -144,10 +144,10 @@ describe("ProductBacklog", () => {
             fireEvent.click(await screen.findByText("Implement login"));
 
             const dialog = screen.getByRole("dialog");
-            expect(dialog).toHaveTextContent("TICKET #1");
+            expect(dialog).toHaveTextContent("Ticket #1");
             expect(
                 screen.getByRole("heading", {
-                    name: "TICKET #1 · IMPLEMENT LOGIN",
+                    name: "Ticket #1 · Implement login",
                 })
             ).toBeInTheDocument();
             expect(dialog).toHaveTextContent(

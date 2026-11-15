@@ -9,11 +9,14 @@
     --color-text-tertiary: #475569;
     --color-text-muted: #64748b;
     --color-text-subtle: #94a3b8;
+    --color-text-heading: #172033;
 
     --color-surface: #ffffff;
     --color-surface-subtle: #f8fafc;
     --color-surface-hover: #f1f5f9;
     --color-border: #e2e8f0;
+    --color-border-subtle: #edf0f4;
+    --color-border-control: #dbe2ea;
 
     --color-text-inverse: #ffffff;
     --color-success: #166534;
