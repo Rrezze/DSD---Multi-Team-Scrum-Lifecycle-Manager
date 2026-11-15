@@ -1,0 +1,188 @@
+
+.container {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px;
+    box-sizing: border-box;
+    color: #1f2937;
+    font-family: inherit;
+}
+
+.header {
+    margin-bottom: 28px;
+}
+
+.eyebrow {
+    margin: 0 0 8px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+}
+
+.header h2 {
+    margin: 0;
+    color: #172554;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.header p:last-child {
+    margin: 8px 0 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.formBody {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.formGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.fullWidth {
+    grid-column: 1 / -1;
+}
+
+.formGroup label {
+    color: #334155;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background-color: #ffffff;
+    color: #1e293b;
+    font: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+.formGroup input:disabled,
+.formGroup select:disabled,
+.formGroup textarea:disabled {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.formGroup textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+.error {
+    color: #dc2626;
+    font-size: 12px;
+}
+
+.apiError {
+    padding: 12px 14px;
+    border: 1px solid #fecaca;
+    border-radius: 7px;
+    background-color: #fef2f2;
+    color: #b91c1c;
+    font-size: 13px;
+}
+
+.ticketFooter {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 18px;
+    }
+
+    .formGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .fullWidth {
+        grid-column: auto;
+    }
+
+    .ticketFooter {
+        flex-direction: column-reverse;
+    }
+
+    .ticketFooter button {
+        width: 100%;
+    }
+}
+
+/* Displays team options in a flexible layout. */
+.teamList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
+}
+
+/* Individual team checkbox option. */
+.teamBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #f8fafc;
+    color: #334155;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.teamBadge input {
+    cursor: pointer;
+    accent-color: var(--color-primary);
+}
+
+.teamBadge:has(input:checked) {
+    border-color: var(--color-primary);
+    background: #eff6ff;
+}
+
+.teamBadge:has(input:disabled) {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.noTeams {
+    color: #64748b;
+    font-size: 13px;
+}

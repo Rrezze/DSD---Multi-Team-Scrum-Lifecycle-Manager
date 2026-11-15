@@ -8,6 +8,7 @@ import type {
     CreateTicketPayload,
     TicketFormErrors,
     TicketType,
+    BacklogTicket,
 } from "../../productBacklogTypes";
 import styles from "./createTicket.module.css";
 
@@ -15,12 +16,14 @@ interface CreateTicketProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
+     tickets: BacklogTicket[];
 }
 
 export default function CreateTicket({
     isOpen,
     onClose,
     onSuccess,
+    tickets,
 }: CreateTicketProps) {
     const [ticketType, setTicketType] = useState<TicketType>("STORY");
     const [title, setTitle] = useState("");
@@ -107,6 +110,17 @@ export default function CreateTicket({
     };
 
     const showParentField = ticketType !== "EPIC";
+    const allowedParentTypes: TicketType[] =
+        ticketType === "STORY"
+            ? ["EPIC"]
+            : ticketType === "TASK" || ticketType === "BUG"
+                ? ["EPIC", "STORY"]
+                : [];
+
+    // Filter the available parent tickets.
+    const availableParentTickets = tickets.filter((ticket) =>
+        allowedParentTypes.includes(ticket.type)
+    );
 
     return (
         <Modal
@@ -141,11 +155,30 @@ export default function CreateTicket({
                             <select
                                 id="ticket-type"
                                 value={ticketType}
-                                onChange={(event) =>
-                                    setTicketType(
-                                        event.target.value as TicketType
-                                    )
+                                onChange={(event) => {
+                                const newType = event.target.value as TicketType;
+
+                                setTicketType(newType);
+
+                                // Clear the selected parent if it is no longer valid.
+                                const selectedParent = tickets.find(
+                                    (ticket) => ticket.id === Number(parent)
+                                );
+
+                                const allowedTypes: TicketType[] =
+                                    newType === "STORY"
+                                        ? ["EPIC"]
+                                        : newType === "TASK" || newType === "BUG"
+                                            ? ["EPIC", "STORY"]
+                                            : [];
+
+                                if (
+                                    newType === "EPIC" ||
+                                    (parent && (!selectedParent || !allowedTypes.includes(selectedParent.type)))
+                                ) {
+                                    setParent("");
                                 }
+                            }}
                             >
                                 <option value="EPIC">Epic</option>
                                 <option value="STORY">Story</option>
@@ -229,18 +262,19 @@ export default function CreateTicket({
                                 <select
                                     id="ticket-parent"
                                     value={parent}
-                                    onChange={(event) =>
-                                        setParent(event.target.value)
-                                    }
-                                    disabled
+                                    onChange={(event) => setParent(event.target.value)}
                                 >
-                                    <option value="">
-                                        Parent options coming soon
-                                    </option>
+                                    <option value="">No parent selected</option>
+
+                                    {availableParentTickets.map((ticket) => (
+                                        <option key={ticket.id} value={ticket.id}>
+                                            {ticket.title} (#{ticket.id} - {ticket.type})
+                                        </option>
+                                    ))}
                                 </select>
 
                                 <small>
-                                    Optionally select an existing Epic or Story.
+                                    Select an existing ticket as the parent, if applicable.
                                 </small>
                             </div>
                         )}
