@@ -47,7 +47,7 @@ export default function TicketDetails({
 
                         <div className={styles.field}>
                             <label>Ticket type</label>
-                            <p className={`${styles.fieldValue} ${styles.selectValue}`}>
+                            <p className={styles.fieldValue}>
                                 {ticket.type}
                             </p>
                         </div>

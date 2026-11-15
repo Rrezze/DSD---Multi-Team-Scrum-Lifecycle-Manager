@@ -78,16 +78,6 @@
     align-items: center;
 }
 
-.selectValue::after {
-    width: 7px;
-    height: 7px;
-    margin: -4px 2px 0 auto;
-    border-right: 2px solid var(--color-text-primary);
-    border-bottom: 2px solid var(--color-text-primary);
-    content: "";
-    transform: rotate(45deg);
-}
-
 .descriptionField,
 .teams {
     grid-column: 1 / -1;
