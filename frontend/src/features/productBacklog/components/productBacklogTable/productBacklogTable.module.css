@@ -1,0 +1,168 @@
+
+.tableContainer {
+    width: 100%;
+    max-height: 600px;
+    overflow: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-surface);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+    text-align: left;
+}
+
+    /* Header */
+    .table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        padding: 12px 14px;
+        background: var(--color-surface-subtle);
+        color: var(--color-text-muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    /* Rows */
+    .table tbody td {
+        padding: 13px 14px;
+        border-bottom: 1px solid var(--color-border);
+        color: var(--color-text-tertiary);
+        font-size: 12px;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table tbody tr:hover {
+        background: #fafbff;
+    }
+
+/* Ticket number and drag handle */
+.ticketNumberCell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ticketNumber {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 5px;
+    border-radius: 5px;
+    background: var(--color-surface-hover);
+    color: var(--color-text-tertiary);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.dragHandle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-text-subtle);
+    font-size: 18px;
+    cursor: grab;
+    touch-action: none;
+}
+
+    .dragHandle:hover {
+        color: var(--color-text-secondary);
+        background: var(--color-surface-hover);
+    }
+
+    .dragHandle:active {
+        cursor: grabbing;
+    }
+
+/* Ticket title */
+.ticketTitle {
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Badges */
+.typeBadge,
+.statusBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.epic {
+    background: var(--color-ticket-epic-background);
+    color: var(--color-ticket-epic-text);
+}
+
+.story {
+    background: var(--color-ticket-story-background);
+    color: var(--color-ticket-story-text);
+}
+
+.task {
+    background: var(--color-ticket-task-background);
+    color: var(--color-ticket-task-text);
+}
+
+.bug {
+    background: var(--color-ticket-bug-background);
+    color: var(--color-ticket-bug-text);
+}
+
+.statusBadge {
+    background: var(--color-surface-hover);
+    color: var(--color-text-tertiary);
+}
+
+/* Points */
+.pointsCell {
+    font-weight: 600;
+    color: var(--color-text-secondary) !important;
+}
+
+/* Saving */
+.savingMessage {
+    padding: 8px 14px;
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 11px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Empty state */
+.emptyState {
+    padding: 35px 15px;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 13px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+}
+.clickableRow {
+    cursor: pointer;
+}
+
+    .clickableRow:hover {
+        background-color: var(--color-surface-subtle);
+    }

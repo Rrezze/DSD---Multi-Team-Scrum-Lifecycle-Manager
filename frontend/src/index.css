@@ -1,4 +1,6 @@
 
+@import "./styles/variable.css";
+
 :root {
     font-family: Inter, Arial, sans-serif;
     font-synthesis: none;
