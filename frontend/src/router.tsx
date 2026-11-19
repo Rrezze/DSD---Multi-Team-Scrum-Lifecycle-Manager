@@ -4,7 +4,9 @@ import ProductBacklog from "./features/productBacklog/productBacklog";
 import { MainLayout } from "./layouts/mainLayout/mainLayout";
 import Teams from "./features/teams/teams";
 import Users from "./features/users/users";
-export const router = createBrowserRouter([
+import PageNotFound from "./components/pageNotFound/pagenotFound";
+
+export const routes = [
 
     {
         path: "/", element: <MainLayout />,
@@ -12,10 +14,9 @@ export const router = createBrowserRouter([
             { path: "/productbacklog", element: <ProductBacklog /> },
             { path: "/users", element: <Users /> },
             { path: "/teams", element: <Teams /> },
-
+            { path: "*", element: <PageNotFound /> },
         ]
     },
-   
-],
+];
 
-);
+export const router = createBrowserRouter(routes);

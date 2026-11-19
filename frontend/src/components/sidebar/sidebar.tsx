@@ -5,10 +5,10 @@ import styles from "./sidebar.module.css";
 const navigationItems = [
   
     { label: "Product Backlog", path: "/productbacklog", icon: "☷" },
-    { label: "Teams", path: "/teams", icon: "♧" },
-    { label: "Users", path: "/users", icon: "♧" },
     { label: "Sprint Planning", path: "/sprints", icon: "▣" },
     { label: "Team Boards", path: "/boards", icon: "◫" },
+    { label: "Teams", path: "/teams", icon: "♧" },
+    { label: "Users", path: "/users", icon: "♧" },
     { label: "Cross-Team Overview", path: "/overview", icon: "◇" }
 ];
 
@@ -44,10 +44,15 @@ export function Sidebar() {
             </div>
 
             <div className={styles["sidebar-footer"]}>
+                
+                    <div>                        
+                        <span>Logout</span>
+                    </div>
+                
                 <div className={styles["workspace-info"]}>
-                    <div className={styles["workspace-avatar"]}>NP</div>
+                    <div className={styles["workspace-avatar"]}>PO</div>
                     <div>
-                        <strong>Nimbus Product</strong>
+                        <strong>Product Owner</strong>
                         <span>Enterprise workspace</span>
                     </div>
                 </div>

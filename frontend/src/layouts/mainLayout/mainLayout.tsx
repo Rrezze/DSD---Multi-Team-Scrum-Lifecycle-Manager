@@ -1,7 +1,7 @@
 
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "../../components/sidebar/sidebar";
-import styles from "./MainLayout.module.css";
+import styles from "./mainLayout.module.css";
 
 export function MainLayout() {
     return (
