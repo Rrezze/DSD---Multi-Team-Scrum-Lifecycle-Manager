@@ -1,0 +1,115 @@
+
+/**
+ * Teams Overview Page Styles
+ *
+ * Defines the page header and three-column layout.
+ */
+
+.teamsPage {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-height: 100%;
+}
+
+.pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.pageHeader h1 {
+    margin: 0 0 6px;
+    color: var(--color-text-heading);
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.pageHeader p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+.pageActions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pageActions label {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+.pageActions select {
+    padding: 9px 12px;
+    border: 1px solid var(--color-border-control);
+    border-radius: 6px;
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
+    font-size: 13px;
+}
+
+.newTeamButton {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    background-color: var(--color-primary);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.newTeamButton:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.feedbackMessage {
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background-color: var(--color-primary-surface);
+    color: var(--color-text-primary);
+    font-size: 13px;
+}
+
+.teamsLayout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: stretch;
+    min-height: 500px;
+}
+
+@media (max-width: 1050px) {
+    .teamsLayout {
+        grid-template-columns: minmax(180px, 0.8fr) minmax(260px, 1.2fr);
+    }
+
+    .teamsLayout > :last-child {
+        grid-column: 1 / -1;
+        min-height: 300px;
+    }
+}
+
+@media (max-width: 650px) {
+    .pageHeader {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .pageActions {
+        flex-wrap: wrap;
+    }
+
+    .teamsLayout {
+        grid-template-columns: 1fr;
+    }
+
+    .teamsLayout > :last-child {
+        grid-column: auto;
+    }
+}

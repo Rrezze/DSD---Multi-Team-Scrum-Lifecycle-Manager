@@ -1,0 +1,440 @@
+
+/**
+ * Team Details Component Styles
+ *
+ * Styles the selected team panel, capacity summary,
+ * members table, actions menu and developer drop zone.
+ */
+
+.teamDetails {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 100%;
+    padding: 22px 18px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+/* Selected team heading */
+
+.teamHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.teamIdentity {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.teamAvatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border: 1px solid var(--color-border);
+    border-radius: 13px;
+    background: var(--color-primary-surface);
+    color: var(--color-primary);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.teamHeading {
+    min-width: 0;
+}
+
+.teamHeading h2 {
+    margin: 0 0 5px;
+    color: var(--color-text-heading);
+    font-size: 19px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.teamHeading p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+/* Three-dot actions menu */
+
+.menuContainer {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.menuButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 1px solid var(--color-border-control);
+    border-radius: 12px;
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+.menuButton:hover {
+    background: var(--color-surface-hover);
+}
+
+/*
+ * One rounded container for both icons.
+ * The buttons themselves have no background or border.
+ */
+
+.actionMenu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 20;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0px;
+
+    width: 60px;
+    padding: 5px 3px;
+
+    background: var(--color-surface);
+    border: 1.5px solid var(--color-border);
+    border-radius: 18px;
+    box-shadow: 0 2px 5px rgb(0 0 0 / 5%);
+}
+
+.actionMenu .iconAction {
+    appearance: none;
+    -webkit-appearance: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 46px;
+    height: 40px;
+    padding: 0;
+    margin: 0;
+
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    box-shadow: none;
+
+    color: var(--color-text-primary);
+    cursor: pointer;
+}
+
+.actionMenu .iconAction svg {
+    display: block;
+    width: 22px;
+    height: 27px;
+    fill: none;
+    stroke: currentColor;
+}
+
+.actionMenu .iconAction:hover {
+    background: transparent;
+    color: var(--color-primary);
+}
+
+.actionMenu .iconAction.deleteAction {
+    color: var(--color-danger);
+}
+
+.actionMenu .iconAction.deleteAction:hover {
+    background: transparent;
+    color: var(--color-danger);
+}
+
+/* Total team capacity */
+
+.capacityCard {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 62px;
+    margin-top: 20px;
+    padding: 10px 16px;
+    border: 1px solid var(--color-border-control);
+    border-radius: 9px;
+    background: var(--color-surface);
+    box-sizing: border-box;
+}
+
+.capacityIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    color: var(--color-text-secondary);
+}
+
+.capacityIcon svg {
+    display: block;
+    width: 27px;
+    height: 27px;
+}
+
+.capacityLabel {
+    flex: 1;
+    color: var(--color-text-primary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.capacityDivider {
+    width: 1px;
+    height: 28px;
+    background: var(--color-border);
+}
+
+.capacityValue {
+    flex-shrink: 0;
+    color: var(--color-text-heading);
+    font-size: 19px;
+    font-weight: 700;
+}
+
+/* Team members section */
+
+.membersSection {
+    margin-top: 20px;
+}
+
+.membersHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.membersTitle {
+    display: flex;
+    align-items: center;
+}
+
+.membersTitle h3 {
+    margin: 0;
+    color: var(--color-text-heading);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.addMembersButton {
+    padding: 9px 12px;
+    border: 1px solid var(--color-border-control);
+    border-radius: 7px;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.addMembersButton:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Members table */
+
+.membersTable {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+}
+
+.tableHeader,
+.memberRow {
+    display: grid;
+    grid-template-columns: minmax(135px, 1.3fr) minmax(100px, 1fr) 25px;
+    align-items: center;
+    gap: 8px;
+    min-width: 390px;
+    padding: 10px 9px;
+}
+
+.tableHeader {
+    background: var(--color-surface-subtle);
+    color: var(--color-text-secondary);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.memberRow {
+    min-height: 48px;
+    border-top: 1px solid var(--color-border-subtle);
+}
+
+.memberIdentity {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+}
+
+.memberAvatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--color-border-control);
+    border-radius: 9px;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.memberName {
+    color: var(--color-text-primary);
+    font-size: 12px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.memberRole {
+    color: var(--color-text-secondary);
+    font-size: 11px;
+    overflow-wrap: anywhere;
+}
+
+.removeMemberButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 25px;
+    height: 25px;
+    padding: 0;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: 21px;
+    cursor: pointer;
+}
+
+.removeMemberButton:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-danger);
+}
+
+.emptyMembers {
+    padding: 12px 0;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+/* Developer drop zone */
+
+.dropZone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 66px;
+    margin-top: 16px;
+    padding: 12px;
+    border: 1.5px dashed var(--color-border-control);
+    border-radius: 9px;
+    background: var(--color-surface-subtle);
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    text-align: center;
+}
+
+.dropIcon {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+/* Highlight the drop zone while a developer is dragged over it. */
+
+.dropZoneActive {
+    border-color: var(--color-primary);
+    background: var(--color-primary-surface);
+    color: var(--color-primary);
+}
+
+/* Empty state */
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 250px;
+    text-align: center;
+}
+
+.emptyState h2 {
+    margin: 0 0 8px;
+    color: var(--color-text-heading);
+    font-size: 18px;
+}
+
+.emptyState p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+/* Keyboard accessibility */
+
+.menuButton:focus-visible,
+.actionMenu .iconAction:focus-visible,
+.addMembersButton:focus-visible,
+.removeMemberButton:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+    .teamDetails {
+        padding: 16px 12px;
+    }
+
+    .teamHeading h2 {
+        font-size: 16px;
+    }
+
+    .capacityCard {
+        gap: 9px;
+        padding: 10px;
+    }
+
+    .capacityLabel {
+        font-size: 12px;
+    }
+
+    .capacityValue {
+        font-size: 16px;
+    }
+}
