@@ -8,12 +8,13 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from teams.models import Team
+from users.permissions import IsProductOwner
 
 from .models import Ticket
 from .serializers import ReorderBacklogSerializer, TicketSerializer, TicketUpdateSerializer
 
 # Created by the users.0002_create_default_po migration.
-# Used as the ticket creator until authentication is added.
+# Used as the ticket creator when nobody is logged in (REQUIRE_LOGIN off).
 DEFAULT_PO_USERNAME = "po"
 
 
@@ -81,7 +82,11 @@ class TicketListCreateView(generics.ListCreateAPIView):
         return queryset.order_by("priority", "id")
 
     def perform_create(self, serializer):
-        creator = get_user_model().objects.get(username=DEFAULT_PO_USERNAME)
+        user = self.request.user
+        if user.is_authenticated:
+            creator = user
+        else:
+            creator = get_user_model().objects.get(username=DEFAULT_PO_USERNAME)
         with transaction.atomic():
             last = Ticket.objects.filter(sprint__isnull=True).aggregate(m=Max("priority"))["m"]
             serializer.save(priority=(last or 0) + 1, created_by=creator)
@@ -109,9 +114,11 @@ class BacklogReorderView(generics.GenericAPIView):
     Their priority becomes 1, 2, 3... and the reordered backlog is returned.
     If a backlog ticket is missing, an id is not in the backlog or an id is
     repeated, nothing is saved and 400 is returned.
+    Only the Product Owner can reorder the backlog.
     """
 
     serializer_class = ReorderBacklogSerializer
+    permission_classes = [IsProductOwner]
 
     @extend_schema(request=ReorderBacklogSerializer, responses=TicketSerializer(many=True))
     def post(self, request):
