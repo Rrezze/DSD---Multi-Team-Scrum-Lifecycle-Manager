@@ -16,6 +16,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # third party
     "rest_framework",
+    "rest_framework.authtoken",
     "drf_spectacular",
     # our apps
     "users",
@@ -87,8 +88,19 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Django REST Framework + OpenAPI (drf-spectacular)
+# Login (token). While REQUIRE_LOGIN is off, the API also works without a
+# token, so the frontend keeps working until the login page is connected.
+# Turn it on with DJANGO_REQUIRE_LOGIN=1 in .env.
+REQUIRE_LOGIN = os.environ.get("DJANGO_REQUIRE_LOGIN", "0") == "1"
+
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "users.permissions.LoginRequiredIfEnabled",
+    ],
 }
 
 SPECTACULAR_SETTINGS = {
