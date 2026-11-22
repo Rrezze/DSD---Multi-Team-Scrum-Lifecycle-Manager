@@ -88,3 +88,7 @@ Run it again after pulling changes that include new migrations, or after resetti
 | Start orchestration | `docker compose up` |
 | View logs | `docker compose logs -f` |
 | Reset the database (**deletes local data**) | `docker compose down -v` |
+
+## Login
+
+`POST /api/auth/login/` with `{"username": "..."}` returns the user (name and role), or 400 if the user doesn't exist. There is no password or token for now: the frontend saves the user and shows or hides actions based on the role, and every API endpoint works without logging in.
