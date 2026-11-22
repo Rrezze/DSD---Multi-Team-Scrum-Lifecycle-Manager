@@ -1,14 +1,11 @@
 
 /**
  * Teams Overview Page
- *
- * Coordinates the Team List, Team Details, and MemberPool components.
- * Handles local team management, developer drag-and-drop assignment,
- * and the Create Team, Edit Team, and Add Members modals.
+
  */
 
 import { useState } from "react";
-import { DndContext, type DragEndEvent } from "@dnd-kit/core";
+import { DndContext, DragOverlay, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core";
 
 import TeamList from "./components/teamList/teamList";
 import TeamDetails from "./components/teamDetails/teamDetails";
@@ -25,6 +22,13 @@ import type { Team } from "./teamsTypes";
 import type { User } from "../../types/userTypes";
 
 import styles from "./teams.module.css";
+type NotificationType = "success" | "error" | "warning" | "info";
+
+    interface TeamsNotification {
+        type: NotificationType;
+        message: string;
+    }
+
 
 export default function Teams() {
     // Stores all teams currently displayed on the page.
@@ -32,6 +36,7 @@ export default function Teams() {
 
     // Stores all application users.
     const [users, setUsers] = useState<User[]>(mockUsers);
+    const [activeUser, setActiveUser] = useState<User | null>(null);
 
     // Stores the ID of the currently selected team.
     const [selectedTeamId, setSelectedTeamId] = useState<number | null>(
@@ -48,11 +53,9 @@ export default function Teams() {
     const [addingMembersTeam, setAddingMembersTeam] =
         useState<Team | null>(null);
 
-    // Displays feedback messages after user actions.
-    const [message, setMessage] = useState("");
-
-    // Stores the success message displayed after an operation.
-    const [successMessage, setSuccessMessage] = useState("");
+    // Stores the notification currently displayed on the Teams page.
+    const [notification, setNotification] =
+        useState<TeamsNotification | null>(null);
 
     // Find the currently selected team.
     const selectedTeam =
@@ -73,14 +76,14 @@ export default function Teams() {
     // Select a team from the left-hand team list.
     const handleSelectTeam = (team: Team) => {
         setSelectedTeamId(team.id);
-        setMessage("");
+        setNotification(null);
     };
 
     // Open the Edit Team modal.
     const handleEditTeam = (team: Team) => {
-        setMessage("");
+        setNotification(null);
         setEditingTeam(team);
-    };
+    }; 
 
     // Save the edited team.
     const handleSaveTeam = (
@@ -109,10 +112,12 @@ export default function Teams() {
         setSelectedTeamId(updatedTeam.id);
         setEditingTeam(null);
 
-        setMessage("");
-        setSuccessMessage("Team updated successfully!");
+        setNotification({
+            type: "success",
+            message: "Team updated successfully!",
+        }); 
+        setActiveUser(null);
     };
-
     // Delete a team after the user confirms the action.
     const handleDeleteTeam = (team: Team) => {
         const confirmed = window.confirm(
@@ -132,8 +137,12 @@ export default function Teams() {
             setSelectedTeamId(updatedTeams[0]?.id ?? null);
         }
 
-        setMessage(`"${team.name}" was removed from the mock data.`);
-    };
+        setNotification({
+            type: "success",
+            message: `"${team.name}" was removed from the mock data.`,
+        }); 
+        setActiveUser(null);
+    }; 
 
     // Remove a developer from a team.
     const handleRemoveMember = (teamId: number, userId: number) => {
@@ -164,8 +173,19 @@ export default function Teams() {
             })
         );
 
-        setMessage("Team member removed from the mock data.");
-    };
+        setNotification({
+            type: "success",
+            message: "Team member removed successfully!",
+        });   
+        setActiveUser(null);
+     };
+
+     // Store the developer being dragged so DragOverlay can display the card.
+    const handleDragStart = (event: DragStartEvent) => {
+    const draggedUser = event.active.data.current?.user as User | undefined;
+
+    setActiveUser(draggedUser ?? null);
+};
 
     // Assign a dragged developer to the currently selected team.
     const handleDragEnd = (event: DragEndEvent) => {
@@ -201,57 +221,65 @@ export default function Teams() {
             })
         );
 
-        setMessage(
-            `${draggedUser.name} was added to ${selectedTeam.name}.`
-        );
+            setNotification({
+            type: "success",
+            message: `${draggedUser.name} was added to ${selectedTeam.name}.`,
+        });
     };
 
     // Add the newly created team to the list and select it.
-    const handleCreateTeam = (newTeam: Team) => {
-        setTeams((currentTeams) => [...currentTeams, newTeam]);
+const handleCreateTeam = (newTeam: Team) => {
+    setTeams((currentTeams) => [...currentTeams, newTeam]);
 
-        setSelectedTeamId(newTeam.id);
+    setSelectedTeamId(newTeam.id);
 
-        // Close the Create Team modal after successful creation.
-        setIsCreateTeamOpen(false);
+    // Close the Create Team modal after successful creation.
+    setIsCreateTeamOpen(false);
 
-        setMessage("");
-        setSuccessMessage("Team created successfully!");
-    };
+    setNotification({
+        type: "success",
+        message: "Team created successfully!",
+    });
+    setActiveUser(null);
+};
 
-    // Add selected existing developers from the Team Details modal.
-    const handleAddMembersToTeam = (addedMembers: User[]) => {
-        if (!addingMembersTeam) return;
+// Add selected existing developers from the Team Details modal.
+const handleAddMembersToTeam = (addedMembers: User[]) => {
+    if (!addingMembersTeam) return;
 
-        setTeams((currentTeams) =>
-            currentTeams.map((team) => {
-                if (team.id !== addingMembersTeam.id) return team;
+    setTeams((currentTeams) =>
+        currentTeams.map((team) => {
+            if (team.id !== addingMembersTeam.id) return team;
 
-                // Prevent adding developers who are already team members.
-                const existingIds = new Set(
-                    team.members.map((member) => member.user.id)
-                );
+            // Prevent adding developers who are already team members.
+            const existingIds = new Set(
+                team.members.map((member) => member.user.id)
+            );
 
-                const uniqueMembers = addedMembers.filter(
-                    (user) => !existingIds.has(user.id)
-                );
+            const uniqueMembers = addedMembers.filter(
+                (user) => !existingIds.has(user.id)
+            );
 
-                return {
-                    ...team,
-                    members: [
-                        ...team.members,
-                        ...uniqueMembers.map((user) => ({ user })),
-                    ],
-                    memberCount: team.memberCount + uniqueMembers.length,
-                };
-            })
-        );
+            return {
+                ...team,
+                members: [
+                    ...team.members,
+                    ...uniqueMembers.map((user) => ({ user })),
+                ],
+                memberCount: team.memberCount + uniqueMembers.length,
+            };
+        })
+        
+    );
 
-        setSelectedTeamId(addingMembersTeam.id);
-        setAddingMembersTeam(null);
+    setSelectedTeamId(addingMembersTeam.id);
+    setAddingMembersTeam(null);
 
-        setMessage("");
-        setSuccessMessage("Team members added successfully!");
+    setNotification({
+        type: "success",
+        message: "Team members added successfully!",
+    });
+    setActiveUser(null);
     };
 
     return (
@@ -284,24 +312,23 @@ export default function Teams() {
                 </div>
             </header>
 
-            {/* General feedback message */}
-            {message && (
-                <p className={styles.feedbackMessage} role="status">
-                    {message}
-                </p>
-            )}
-
-            {/* Success notification */}
-            {successMessage && (
+            {notification && (
                 <Notification
-                    key={successMessage}
-                    type="success"
-                    message={successMessage}
+                    key={`${notification.type}-${notification.message}`}
+                    type={notification.type}
+                    message={notification.message}
                 />
             )}
 
             {/* Team list, team details and unassigned developers */}
-            <DndContext onDragEnd={handleDragEnd}>
+            <DndContext
+                onDragStart={handleDragStart}
+                onDragEnd={(event) => {
+                    handleDragEnd(event);
+                    setActiveUser(null);
+                }}
+                onDragCancel={() => setActiveUser(null)}
+            >
                 <div className={styles.teamsLayout}>
                     <TeamList
                         teams={teams}
@@ -322,6 +349,14 @@ export default function Teams() {
                         title="Not in a Team"
                     />
                 </div>
+                <DragOverlay>
+                    {activeUser ? (
+                        <div className={styles.dragOverlayCard}>
+                            <strong>{activeUser.name}</strong>
+                            <span>{activeUser.role}</span>
+                        </div>
+                    ) : null}
+                </DragOverlay>
             </DndContext>
 
             {/* Create Team modal */}

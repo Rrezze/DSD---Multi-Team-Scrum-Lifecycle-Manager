@@ -237,7 +237,11 @@ export default function CreateTeam({
                             </div>
 
                             {dropdownOpen && (
-                                <div className={styles.dropdownList}>
+                                <div
+                                    className={styles.dropdownList}
+                                    role="group"
+                                    aria-label="Available developers"
+                                >
                                     {filteredDevelopers.filter(
                                         (user) =>
                                             !selectedMembers.some(

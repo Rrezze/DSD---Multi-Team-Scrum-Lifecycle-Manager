@@ -33,7 +33,7 @@ export default function TeamList({
         const words = name
             .replace(/&/g, "")
             .split(/\s+/)
-            .filter((word) => word && word.toLowerCase() !== "team");
+            .filter(Boolean)
 
         return words
             .slice(0, 2)

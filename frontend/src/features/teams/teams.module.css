@@ -82,6 +82,7 @@
     gap: 24px;
     align-items: stretch;
     min-height: 500px;
+    height: 600px;
 }
 
 @media (max-width: 1050px) {
@@ -112,4 +113,28 @@
     .teamsLayout > :last-child {
         grid-column: auto;
     }
+}
+/* Floating developer card displayed while dragging. */
+.dragOverlayCard {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 240px;
+    padding: 12px;
+    border: 1px solid var(--color-primary);
+    border-radius: 8px;
+    background: var(--color-surface);
+    box-shadow: 0 8px 20px rgb(0 0 0 / 15%);
+    cursor: grabbing;
+    pointer-events: none;
+}
+
+.dragOverlayCard strong {
+    color: var(--color-text-primary);
+    font-size: 13px;
+}
+
+.dragOverlayCard span {
+    color: var(--color-text-secondary);
+    font-size: 12px;
 }

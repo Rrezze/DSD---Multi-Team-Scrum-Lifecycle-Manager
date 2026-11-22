@@ -50,7 +50,7 @@ function DraggableDeveloper({
         transform: transform
             ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
             : undefined,
-        opacity: isDragging ? 0.4 : 1,
+        opacity: isDragging ? 0 : 1,
         cursor: isDragging ? "grabbing" : "grab",
     };
 
