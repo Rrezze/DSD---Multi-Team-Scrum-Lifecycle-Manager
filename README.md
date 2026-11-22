@@ -53,7 +53,6 @@ docker run --rm python:3.12-slim python -c "import secrets; print(secrets.token_
 | `DJANGO_DEBUG` | Django debug mode | `1` for development, `0` for production |
 | `DJANGO_SECRET_KEY` | Django secret key | (_paste your django key here_) |
 | `DJANGO_ALLOWED_HOSTS` | Allowed hostnames |keep the default |
-| `DJANGO_REQUIRE_LOGIN` | API needs a login token | `0` for now (see [Login](#login)) |
 
 
 ### 5. Build and start the containers:
@@ -92,12 +91,4 @@ Run it again after pulling changes that include new migrations, or after resetti
 
 ## Login
 
-`POST /api/auth/login/` with `{"email": "...", "password": "..."}` returns a token and the user (name and role). Send the token in every request as `Authorization: Token <token>`. `POST /api/auth/logout/` deletes the token. In Swagger (`/api/docs/`) use the **Authorize** button.
-
-With `DJANGO_REQUIRE_LOGIN=0` the API also works without a token. With `1`, every endpoint except login and the API docs needs a token, and role rules apply (for example, only the Product Owner can reorder the backlog). Restart the containers after changing it.
-
-To create a user with a password for testing:
-
-```bash
-docker compose exec backend python manage.py createsuperuser
-```
+`POST /api/auth/login/` with `{"username": "..."}` returns the user (name and role), or 400 if the user doesn't exist. There is no password or token for now: the frontend saves the user and shows or hides actions based on the role, and every API endpoint works without logging in.
