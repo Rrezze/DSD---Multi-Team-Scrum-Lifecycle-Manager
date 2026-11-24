@@ -15,7 +15,7 @@
  * Ticket forms and their validation remain within their own components.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import styles from "./productBacklog.module.css";
 
@@ -31,7 +31,21 @@ import { getBacklogTickets, getTeams } from "./productBacklogApi";
 
 import type { BacklogTicket, Team} from "./productBacklogTypes";
 
-export default function ProductBacklog() {
+import type { BacklogPermissions } from "../login/rolePermissions";
+
+interface ProductBacklogProps {
+    permissions: BacklogPermissions;
+    focusHeading?: boolean;
+}
+
+export default function ProductBacklog({ permissions, focusHeading = false }: ProductBacklogProps) {
+    const heading = useRef<HTMLHeadingElement>(null);
+
+    useEffect(() => {
+        document.title = "Product Backlog | ScrumFlow";
+        if (focusHeading) heading.current?.focus();
+    }, [focusHeading]);
+
     const [tickets, setTickets] = useState<BacklogTicket[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedType, setSelectedType] = useState("");
@@ -173,7 +187,7 @@ export default function ProductBacklog() {
             {/* Page Header */}
             <div className={styles.header}>
                 <div>
-                    <h1 className={styles.title}>
+                    <h1 ref={heading} tabIndex={-1} className={styles.title}>
                         Product Backlog
                     </h1>
 
@@ -182,12 +196,11 @@ export default function ProductBacklog() {
                     </p>
                 </div>
 
-                <Button
-                    type="button"
-                    onClick={handleCreateTicketModalOpen}
-                >
-                    + Create Ticket
-                </Button>
+                {permissions.canCreateTickets && (
+                    <Button type="button" onClick={handleCreateTicketModalOpen}>
+                        + Create Ticket
+                    </Button>
+                )}
             </div>
 
             {/* Success Notification */}
@@ -315,6 +328,7 @@ export default function ProductBacklog() {
                 </div>
             ) : (
                 <ProductBacklogTable
+                    canReorder={permissions.canReorderTickets}
                     tickets={tickets}
                     parentTickets={allTickets}
                     onTicketClick={handleTicketClick}
@@ -322,12 +336,14 @@ export default function ProductBacklog() {
             )}
 
             {/* Create Ticket */}
-            <CreateTicket
-                isOpen={isCreateTicketModalOpen}
-                onClose={() => setIsCreateTicketModalOpen(false)}
-                onSuccess={handleTicketCreated}
-                tickets={allTickets}
-            />
+            {permissions.canCreateTickets && (
+                <CreateTicket
+                    isOpen={isCreateTicketModalOpen}
+                    onClose={() => setIsCreateTicketModalOpen(false)}
+                    onSuccess={handleTicketCreated}
+                    tickets={allTickets}
+                />
+            )}
 
             {/* View Ticket */}
             <ViewTicket

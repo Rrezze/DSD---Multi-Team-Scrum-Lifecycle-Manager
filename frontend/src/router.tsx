@@ -1,10 +1,8 @@
-
 import { createBrowserRouter } from "react-router-dom";
-import ProductBacklog from "./features/productBacklog/productBacklog";
+import { BacklogRoute, LoginRoute } from "./features/login/sessionRoutes";
+
 export const router = createBrowserRouter([
-
-    { path: "/", element: <ProductBacklog /> },
-    { path: "/productbacklog", element: <ProductBacklog /> },
-],
-
-);
+    { path: "/", element: <LoginRoute /> },
+    { path: "/login", element: <LoginRoute /> },
+    { path: "/productbacklog", element: <BacklogRoute /> },
+]);

@@ -1,4 +1,10 @@
 :root {
+    --color-workspace-rail: #10192c;
+    --color-workspace-background: #eff4fa;
+    --color-workspace-border: #bdcde1;
+    --color-brand-caption: #a9c6ed;
+    --color-brand-blue: #365ce9;
+
     --color-primary: #2563eb;
     --color-primary-hover: #1d4ed8;
     --color-primary-surface: #eff6ff;

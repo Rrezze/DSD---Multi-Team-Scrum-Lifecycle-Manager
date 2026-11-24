@@ -30,19 +30,21 @@ import styles from "./productBacklogTable.module.css";
 
 interface ProductBacklogTableProps {
     tickets: BacklogTicket[];
+    canReorder: boolean;
     parentTickets: BacklogTicket[];
     onTicketClick: (ticket: BacklogTicket) => void;
 }
 
 interface SortableTicketRowProps {
     ticket: BacklogTicket;
+    canReorder: boolean;
     parentTickets: BacklogTicket[];
     onTicketClick: (ticket: BacklogTicket) => void;
 }
 /**
  * A single sortable ticket row.
  */
-function SortableTicketRow({ ticket, parentTickets, onTicketClick }: SortableTicketRowProps) {
+function SortableTicketRow({ canReorder, ticket, parentTickets, onTicketClick }: SortableTicketRowProps) {
     const {
         attributes,
         listeners,
@@ -52,6 +54,7 @@ function SortableTicketRow({ ticket, parentTickets, onTicketClick }: SortableTic
         isDragging,
     } = useSortable({
         id: ticket.id,
+        disabled: !canReorder,
     });
 
     const rowStyle: React.CSSProperties = {
@@ -71,17 +74,19 @@ function SortableTicketRow({ ticket, parentTickets, onTicketClick }: SortableTic
                         {ticket.id}
                     </span>
 
-                    <button
-                        type="button"
-                        className={styles.dragHandle}
-                        aria-label={`Drag ticket ${ticket.id} to reorder`}
-                        title="Drag to reorder"
-                        onClick={(event) => event.stopPropagation()}
-                        {...attributes}
-                        {...listeners}
-                    >
-                        ⠿
-                    </button>
+                    {canReorder && (
+                        <button
+                            type="button"
+                            className={styles.dragHandle}
+                            aria-label={`Drag ticket ${ticket.id} to reorder`}
+                            title="Drag to reorder"
+                            onClick={(event) => event.stopPropagation()}
+                            {...attributes}
+                            {...listeners}
+                        >
+                            ⠿
+                        </button>
+                    )}
                 </div>
             </td>
 
@@ -140,6 +145,7 @@ function SortableTicketRow({ ticket, parentTickets, onTicketClick }: SortableTic
 
 export default function ProductBacklogTable({
     tickets,
+    canReorder,
     parentTickets,
     onTicketClick
 }: ProductBacklogTableProps) {
@@ -180,7 +186,7 @@ export default function ProductBacklogTable({
 
         const { active, over } = event;
 
-        if (!over || active.id === over.id || isSavingOrder) {
+        if (!canReorder || !over || active.id === over.id || isSavingOrder) {
             return;
         }
 
@@ -269,7 +275,7 @@ export default function ProductBacklogTable({
             )}
 
             <DndContext
-                sensors={sensors}
+                sensors={canReorder ? sensors : []}
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
             >
@@ -296,6 +302,7 @@ export default function ProductBacklogTable({
                             {orderedTickets.map((ticket) => (
                                 <SortableTicketRow
                                     key={ticket.id}
+                                    canReorder={canReorder}
                                     ticket={ticket}
                                     parentTickets={parentTickets}
                                     onTicketClick={onTicketClick}
