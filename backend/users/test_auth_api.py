@@ -22,6 +22,7 @@ class LoginApiTests(APITestCase):
         self.assertEqual(response.data, {
             "id": self.ana.pk, "username": "ana", "email": "ana@example.com",
             "first_name": "Ana", "last_name": "Dev", "role": "DEVELOPER",
+            "is_active": True,
         })
 
     def test_login_returns_the_role(self):
