@@ -19,3 +19,30 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.get_full_name() or self.username
+
+
+class Absence(models.Model):
+    """A period when a user can't work (holiday, sickness...). Used later to
+    lower the team capacity in every sprint it overlaps.
+
+    hours is only for a partial day off (e.g. a 4-hour appointment); when it
+    is empty, all the days from start_date to end_date count as absent.
+    """
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="absences")
+    start_date = models.DateField()
+    end_date = models.DateField()
+    reason = models.CharField(max_length=200, blank=True)
+    hours = models.PositiveSmallIntegerField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["start_date", "id"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(end_date__gte=models.F("start_date")),
+                name="absence_ends_after_it_starts",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user} absent {self.start_date} - {self.end_date}"

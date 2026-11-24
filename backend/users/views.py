@@ -1,3 +1,6 @@
+from datetime import date
+
+from django.shortcuts import get_object_or_404
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import filters, generics
@@ -5,8 +8,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import User
-from .serializers import LoginSerializer, UserSerializer
+from .models import Absence, User
+from .serializers import AbsenceSerializer, LoginSerializer, UserSerializer
 
 
 class LoginView(APIView):
@@ -87,3 +90,97 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
             raise ValidationError({"detail": "The default Product Owner can't be deleted."})
         instance.is_active = False
         instance.save(update_fields=["is_active"])
+
+
+class UserAbsenceListCreateView(generics.ListCreateAPIView):
+    """Absences of one user.
+
+    GET returns the user's absences, oldest first. POST adds one:
+    start_date and end_date are required, reason and hours are optional
+    (hours only for a one-day absence). Absences of the same user can't
+    overlap.
+    """
+
+    serializer_class = AbsenceSerializer
+
+    def get_user(self):
+        return get_object_or_404(User, pk=self.kwargs["user_pk"])
+
+    def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):  # API schema generation
+            return Absence.objects.none()
+        return self.get_user().absences.all()
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if "user_pk" in self.kwargs:  # not set when the API schema is generated
+            context["user"] = self.get_user()
+        return context
+
+    def perform_create(self, serializer):
+        serializer.save(user=serializer.context["user"])
+
+
+def _parse_date(name, value):
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        raise ValidationError({name: f"'{value}' is not a date. Use YYYY-MM-DD."})
+
+
+@extend_schema_view(
+    get=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "users", OpenApiTypes.STR,
+                description="Comma-separated user ids, e.g. 1,2,3. Without it, all users.",
+            ),
+            OpenApiParameter(
+                "from", OpenApiTypes.DATE,
+                description="Only absences that end on or after this date.",
+            ),
+            OpenApiParameter(
+                "to", OpenApiTypes.DATE,
+                description="Only absences that start on or before this date.",
+            ),
+        ]
+    )
+)
+class AbsenceListView(generics.ListAPIView):
+    """Absences of several users at once, e.g. everyone in a team.
+
+    ?users=1,2,3 picks the users, ?from= and ?to= keep only the absences
+    that overlap that period (for example a sprint). Ordered by user and
+    start date.
+    """
+
+    serializer_class = AbsenceSerializer
+
+    def get_queryset(self):
+        queryset = Absence.objects.all()
+        params = self.request.query_params
+
+        users = params.get("users")
+        if users is not None:
+            ids = [part.strip() for part in users.split(",") if part.strip()]
+            if not ids or not all(part.isdigit() for part in ids):
+                raise ValidationError({"users": "Use comma-separated user ids, e.g. 1,2,3."})
+            queryset = queryset.filter(user_id__in=[int(part) for part in ids])
+
+        start = params.get("from")
+        end = params.get("to")
+        if start is not None:
+            queryset = queryset.filter(end_date__gte=_parse_date("from", start))
+        if end is not None:
+            queryset = queryset.filter(start_date__lte=_parse_date("to", end))
+        if start is not None and end is not None and end < start:
+            raise ValidationError({"to": "'to' can't be before 'from'."})
+
+        return queryset.order_by("user_id", "start_date", "id")
+
+
+class AbsenceDeleteView(generics.DestroyAPIView):
+    """Delete one absence (the x next to it on the Users page)."""
+
+    queryset = Absence.objects.all()
+    serializer_class = AbsenceSerializer
