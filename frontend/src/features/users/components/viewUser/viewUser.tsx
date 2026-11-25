@@ -8,15 +8,15 @@ import {
     createUserAbsence,
     deleteUserAbsence,
     getUserAbsences,
-    replaceUserAbsence,
+    updateUserAbsence,
 } from "../../usersApi";
 import {
     getUserRoleLabel,
     toUnavailabilityPeriod,
     UserRole,
     type ApiAbsence,
-    type CreateAbsencePayload,
     type UnavailabilityPeriod,
+    type UpdateAbsencePayload,
     type User,
 } from "../../usersTypes";
 import styles from "./viewUser.module.css";
@@ -190,24 +190,13 @@ export default function ViewUser({
                     throw new Error("The absence being edited could not be found.");
                 }
 
-                const replacement: CreateAbsencePayload = {
+                const replacement: UpdateAbsencePayload = {
                     start_date: startDate,
                     end_date: endDate,
                     reason: existing.reason,
                     hours: startDate === endDate ? existing.hours : null,
                 };
-                savedAbsence = await replaceUserAbsence(
-                    user.id,
-                    {
-                        id: existing.id,
-                        user: user.id,
-                        start_date: existing.startDate,
-                        end_date: existing.endDate,
-                        reason: existing.reason,
-                        hours: existing.hours,
-                    },
-                    replacement
-                );
+                savedAbsence = await updateUserAbsence(existing.id, replacement);
             }
 
             const savedPeriod = toUnavailabilityPeriod(savedAbsence);
@@ -231,24 +220,6 @@ export default function ViewUser({
                 ? error.message
                 : "Failed to save the absence.";
             setAbsenceActionError(message);
-
-            if (editingPeriodId !== null) {
-                try {
-                    const absences = await getUserAbsences(user.id);
-                    onUserChange({
-                        ...user,
-                        unavailabilities: absences.map(toUnavailabilityPeriod),
-                        unavailabilitiesLoaded: true,
-                    });
-                } catch (refreshError) {
-                    const refreshMessage = refreshError instanceof Error
-                        ? refreshError.message
-                        : "Failed to refresh user absences.";
-                    setAbsenceActionError(
-                        `${message} Could not refresh the absence list: ${refreshMessage}`
-                    );
-                }
-            }
         } finally {
             setIsSubmittingAbsence(false);
         }

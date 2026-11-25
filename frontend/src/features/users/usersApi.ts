@@ -8,6 +8,7 @@ import {
     type ApiUser,
     type CreateAbsencePayload,
     type CreateUserPayload,
+    type UpdateAbsencePayload,
     type UpdateUserPayload,
     type UserRole,
 } from "./usersTypes";
@@ -220,35 +221,28 @@ export async function deleteUserAbsence(absenceId: number): Promise<void> {
     }
 }
 
-export async function replaceUserAbsence(
-    userId: number,
-    existingAbsence: ApiAbsence,
-    absenceData: CreateAbsencePayload
+export async function updateUserAbsence(
+    absenceId: number,
+    absenceData: UpdateAbsencePayload
 ): Promise<ApiAbsence> {
-    await deleteUserAbsence(existingAbsence.id);
-
-    try {
-        return await createUserAbsence(userId, absenceData);
-    } catch (error) {
-        try {
-            await createUserAbsence(userId, {
-                start_date: existingAbsence.start_date,
-                end_date: existingAbsence.end_date,
-                reason: existingAbsence.reason,
-                hours: existingAbsence.hours,
-            });
-        } catch (restoreError) {
-            const updateMessage = error instanceof Error
-                ? error.message
-                : "The replacement absence could not be created.";
-            const restoreMessage = restoreError instanceof Error
-                ? restoreError.message
-                : "The original absence could not be restored.";
-            throw new Error(
-                `${updateMessage} The original absence could not be restored: ${restoreMessage}`
-            );
+    const response = await apiClient.request(
+        API_ENDPOINTS.ABSENCE_DETAIL(absenceId),
+        {
+            method: "PATCH",
+            body: JSON.stringify(absenceData),
         }
+    );
+    const data = await readResponseData(response);
 
-        throw error;
+    if (!response.ok) {
+        throw new Error(
+            getApiErrorMessage(data as ApiErrorResponse ?? {}, response.status)
+        );
     }
+
+    if (!isApiAbsence(data)) {
+        throw new Error("Invalid updated absence response.");
+    }
+
+    return data;
 }
