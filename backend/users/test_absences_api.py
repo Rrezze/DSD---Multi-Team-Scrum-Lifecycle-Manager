@@ -221,3 +221,80 @@ class DeactivatedUserAbsenceApiTests(APITestCase):
         response = self.client.get(user_url(self.ana))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
+
+
+class EditAbsenceApiTests(APITestCase):
+    def setUp(self):
+        self.ana = User.objects.create_user(username="ana")
+        self.first = Absence.objects.create(user=self.ana, start_date="2026-12-01",
+                                            end_date="2026-12-03", reason="holiday")
+        self.second = Absence.objects.create(user=self.ana, start_date="2026-12-10",
+                                             end_date="2026-12-12")
+
+    def patch(self, absence, **data):
+        return self.client.patch(f"/api/absences/{absence.pk}/", data, format="json")
+
+    def test_change_dates(self):
+        response = self.patch(self.first, start_date="2026-12-02", end_date="2026-12-05")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.first.refresh_from_db()
+        self.assertEqual(str(self.first.start_date), "2026-12-02")
+        self.assertEqual(str(self.first.end_date), "2026-12-05")
+        self.assertEqual(response.data["id"], self.first.pk)
+        self.assertEqual(Absence.objects.count(), 2)
+
+    def test_change_only_the_reason(self):
+        response = self.patch(self.first, reason="sick")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.first.refresh_from_db()
+        self.assertEqual(self.first.reason, "sick")
+        self.assertEqual(str(self.first.end_date), "2026-12-03")
+
+    def test_new_range_can_cover_its_own_old_days(self):
+        response = self.patch(self.first, end_date="2026-12-09")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_overlap_with_another_absence_keeps_the_old_one(self):
+        response = self.patch(self.first, end_date="2026-12-11")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.first.refresh_from_db()
+        self.assertEqual(str(self.first.end_date), "2026-12-03")
+        self.assertEqual(Absence.objects.count(), 2)
+
+    def test_end_before_start_using_the_saved_start(self):
+        response = self.patch(self.first, end_date="2026-11-30")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("end_date", response.data)
+
+    def test_hours_only_for_one_day(self):
+        response = self.patch(self.first, hours=4)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("hours", response.data)
+
+    def test_make_it_a_partial_day(self):
+        response = self.patch(self.first, end_date="2026-12-01", hours=4)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["hours"], 4)
+
+    def test_cannot_move_absence_to_another_user(self):
+        marko = User.objects.create_user(username="marko")
+        response = self.patch(self.first, user=marko.pk, reason="x")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.first.refresh_from_db()
+        self.assertEqual(self.first.user, self.ana)
+
+    def test_cannot_edit_absence_of_deactivated_user(self):
+        self.ana.is_active = False
+        self.ana.save()
+        response = self.patch(self.first, reason="sick")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_unknown_absence(self):
+        response = self.client.patch("/api/absences/9999/", {"reason": "x"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_put_is_not_allowed(self):
+        response = self.client.put(f"/api/absences/{self.first.pk}/",
+                                   {"start_date": "2026-12-01", "end_date": "2026-12-02"},
+                                   format="json")
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)

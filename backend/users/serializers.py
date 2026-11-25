@@ -61,7 +61,8 @@ MAX_HOURS_PER_DAY = 8
 
 
 class AbsenceSerializer(serializers.ModelSerializer):
-    """An absence of a user. The user comes from the URL, not from the body."""
+    """An absence of a user. The user comes from the URL (or from the
+    absence when editing), never from the body."""
 
     class Meta:
         model = Absence
@@ -69,15 +70,23 @@ class AbsenceSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "user"]
 
     def validate(self, attrs):
-        user = self.context["user"]
+        # On edit (PATCH) only the changed fields are sent, so the missing
+        # ones come from the absence that is being edited.
+        absence = self.instance
+        user = absence.user if absence is not None else self.context["user"]
         if not user.is_active:
             raise serializers.ValidationError("This user is deactivated.")
-        start, end = attrs["start_date"], attrs["end_date"]
+
+        def current(name):
+            if name in attrs:
+                return attrs[name]
+            return getattr(absence, name) if absence is not None else None
+
+        start, end, hours = current("start_date"), current("end_date"), current("hours")
         if end < start:
             raise serializers.ValidationError(
                 {"end_date": "The absence can't end before it starts."}
             )
-        hours = attrs.get("hours")
         if hours is not None:
             if start != end:
                 raise serializers.ValidationError(
@@ -88,7 +97,11 @@ class AbsenceSerializer(serializers.ModelSerializer):
                     {"hours": f"Hours must be between 1 and {MAX_HOURS_PER_DAY}."}
                 )
         # Two absences of the same user on the same days would count twice.
-        if user.absences.filter(start_date__lte=end, end_date__gte=start).exists():
+        # When editing, the absence itself doesn't count.
+        overlapping = user.absences.filter(start_date__lte=end, end_date__gte=start)
+        if absence is not None:
+            overlapping = overlapping.exclude(pk=absence.pk)
+        if overlapping.exists():
             raise serializers.ValidationError(
                 "This user already has an absence in this period."
             )
