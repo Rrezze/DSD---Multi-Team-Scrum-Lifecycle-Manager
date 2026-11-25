@@ -199,3 +199,4 @@ class TeamDeleteApiTests(APITestCase):
     def test_delete_unknown_team_is_404(self):
         response = self.client.delete("/api/teams/9999/")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
