@@ -2,28 +2,29 @@ import { useEffect, useState, type FormEvent } from "react";
 
 import Button from "../../../../components/button/Button";
 import Modal from "../../../../components/modal/Modal";
+import Notification from "../../../../components/notification/notification";
+import EditUser from "../editUser/editUser";
+import {
+    createUserAbsence,
+    deleteUserAbsence,
+    getUserAbsences,
+    replaceUserAbsence,
+} from "../../usersApi";
 import {
     getUserRoleLabel,
+    toUnavailabilityPeriod,
+    UserRole,
+    type ApiAbsence,
+    type CreateAbsencePayload,
     type UnavailabilityPeriod,
     type User,
-    type UserRole,
 } from "../../usersTypes";
 import styles from "./viewUser.module.css";
 
 interface ViewUserProps {
     user: User | null;
     onClose: () => void;
-    onEdit: (user: User) => void;
-    onAddUnavailability: (
-        userId: number,
-        period: Omit<UnavailabilityPeriod, "id">
-    ) => void;
-    onRemoveUnavailability: (userId: number, periodId: number) => void;
-    onUpdateUnavailability: (
-        userId: number,
-        periodId: number,
-        period: Omit<UnavailabilityPeriod, "id">
-    ) => void;
+    onUserChange: (user: User) => void;
 }
 
 type UnavailabilityErrors = Partial<
@@ -47,25 +48,35 @@ function getPeriodDays(startDate: string, endDate: string) {
     return Math.round((end - start) / 86_400_000) + 1;
 }
 
+function getPeriodDuration(period: UnavailabilityPeriod) {
+    return period.hours === null
+        ? `${getPeriodDays(period.startDate, period.endDate)} days`
+        : `${period.hours} hours`;
+}
+
 const roleClassNames: Record<UserRole, string> = {
-    PRODUCT_OWNER: "productOwner",
-    DEVELOPER: "developer",
-    ENGINEERING_MANAGER: "engineeringManager",
+    [UserRole.PRODUCT_OWNER]: "productOwner",
+    [UserRole.DEVELOPER]: "developer",
+    [UserRole.ENGINEERING_MANAGER]: "engineeringManager",
 };
 
 export default function ViewUser({
     user,
     onClose,
-    onEdit,
-    onAddUnavailability,
-    onRemoveUnavailability,
-    onUpdateUnavailability,
+    onUserChange,
 }: ViewUserProps) {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [errors, setErrors] = useState<UnavailabilityErrors>({});
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [isEditUserOpen, setIsEditUserOpen] = useState(false);
     const [editingPeriodId, setEditingPeriodId] = useState<number | null>(null);
+    const [isLoadingAbsences, setIsLoadingAbsences] = useState(false);
+    const [absenceFetchError, setAbsenceFetchError] = useState("");
+    const [absenceActionError, setAbsenceActionError] = useState("");
+    const [absenceRetryCount, setAbsenceRetryCount] = useState(0);
+    const [isSubmittingAbsence, setIsSubmittingAbsence] = useState(false);
+    const [deletingAbsenceId, setDeletingAbsenceId] = useState<number | null>(null);
     const today = getLocalDateValue(new Date());
 
     useEffect(() => {
@@ -73,10 +84,71 @@ export default function ViewUser({
         setEndDate("");
         setErrors({});
         setIsUpdateModalOpen(false);
+        setIsEditUserOpen(false);
         setEditingPeriodId(null);
+        setAbsenceFetchError("");
+        setAbsenceActionError("");
     }, [user?.id]);
 
-    const handleAddUnavailability = (event: FormEvent<HTMLFormElement>) => {
+    useEffect(() => {
+        if (!user || user.unavailabilitiesLoaded) return;
+
+        let isActive = true;
+        setIsLoadingAbsences(true);
+        setAbsenceFetchError("");
+
+        void getUserAbsences(user.id)
+            .then((absences) => {
+                if (!isActive) return;
+                onUserChange({
+                    ...user,
+                    unavailabilities: absences.map(toUnavailabilityPeriod),
+                    unavailabilitiesLoaded: true,
+                });
+            })
+            .catch((error: unknown) => {
+                if (!isActive) return;
+                setAbsenceFetchError(
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to load user absences."
+                );
+            })
+            .finally(() => {
+                if (isActive) setIsLoadingAbsences(false);
+            });
+
+        return () => {
+            isActive = false;
+        };
+    }, [user?.id, user?.unavailabilitiesLoaded, absenceRetryCount]);
+
+    const handleRemoveUnavailability = async (periodId: number) => {
+        if (!user || deletingAbsenceId !== null) return;
+
+        setDeletingAbsenceId(periodId);
+        setAbsenceActionError("");
+        try {
+            await deleteUserAbsence(periodId);
+            const updatedPeriods = user.unavailabilities.filter(
+                (period) => period.id !== periodId
+            );
+            onUserChange({ ...user, unavailabilities: updatedPeriods });
+            console.log("User unavailability periods:", updatedPeriods);
+        } catch (error) {
+            setAbsenceActionError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to remove the absence."
+            );
+        } finally {
+            setDeletingAbsenceId(null);
+        }
+    };
+
+    const handleAddUnavailability = async (
+        event: FormEvent<HTMLFormElement>
+    ) => {
         event.preventDefault();
 
         const nextErrors: UnavailabilityErrors = {};
@@ -94,20 +166,92 @@ export default function ViewUser({
         }
 
         setErrors(nextErrors);
-        if (Object.keys(nextErrors).length > 0 || !user) return;
+        if (
+            Object.keys(nextErrors).length > 0 ||
+            !user ||
+            isSubmittingAbsence ||
+            !user.unavailabilitiesLoaded
+        ) return;
 
-        if (editingPeriodId === null) {
-            onAddUnavailability(user.id, { startDate, endDate });
-        } else {
-            onUpdateUnavailability(user.id, editingPeriodId, {
-                startDate,
-                endDate,
+        setIsSubmittingAbsence(true);
+        setAbsenceActionError("");
+        try {
+            let savedAbsence: ApiAbsence;
+            if (editingPeriodId === null) {
+                savedAbsence = await createUserAbsence(user.id, {
+                    start_date: startDate,
+                    end_date: endDate,
+                });
+            } else {
+                const existing = user.unavailabilities.find(
+                    (period) => period.id === editingPeriodId
+                );
+                if (!existing) {
+                    throw new Error("The absence being edited could not be found.");
+                }
+
+                const replacement: CreateAbsencePayload = {
+                    start_date: startDate,
+                    end_date: endDate,
+                    reason: existing.reason,
+                    hours: startDate === endDate ? existing.hours : null,
+                };
+                savedAbsence = await replaceUserAbsence(
+                    user.id,
+                    {
+                        id: existing.id,
+                        user: user.id,
+                        start_date: existing.startDate,
+                        end_date: existing.endDate,
+                        reason: existing.reason,
+                        hours: existing.hours,
+                    },
+                    replacement
+                );
+            }
+
+            const savedPeriod = toUnavailabilityPeriod(savedAbsence);
+            const updatedPeriods = editingPeriodId === null
+                ? [...user.unavailabilities, savedPeriod]
+                : user.unavailabilities.map((period) =>
+                    period.id === editingPeriodId ? savedPeriod : period
+                );
+            onUserChange({
+                ...user,
+                unavailabilities: updatedPeriods,
+                unavailabilitiesLoaded: true,
             });
+            console.log("User unavailability periods:", updatedPeriods);
+            setStartDate("");
+            setEndDate("");
+            setEditingPeriodId(null);
+            setIsUpdateModalOpen(false);
+        } catch (error) {
+            const message = error instanceof Error
+                ? error.message
+                : "Failed to save the absence.";
+            setAbsenceActionError(message);
+
+            if (editingPeriodId !== null) {
+                try {
+                    const absences = await getUserAbsences(user.id);
+                    onUserChange({
+                        ...user,
+                        unavailabilities: absences.map(toUnavailabilityPeriod),
+                        unavailabilitiesLoaded: true,
+                    });
+                } catch (refreshError) {
+                    const refreshMessage = refreshError instanceof Error
+                        ? refreshError.message
+                        : "Failed to refresh user absences.";
+                    setAbsenceActionError(
+                        `${message} Could not refresh the absence list: ${refreshMessage}`
+                    );
+                }
+            }
+        } finally {
+            setIsSubmittingAbsence(false);
         }
-        setStartDate("");
-        setEndDate("");
-        setEditingPeriodId(null);
-        setIsUpdateModalOpen(false);
     };
 
     const upcomingPeriods = (user?.unavailabilities ?? [])
@@ -125,8 +269,9 @@ export default function ViewUser({
 
     return (
         <>
+            <Notification type="error" message={absenceActionError} />
             <Modal
-                isOpen={user !== null}
+                isOpen={user !== null && !isEditUserOpen}
                 onClose={onClose}
                 labelledBy="user-details-title"
             >
@@ -153,15 +298,17 @@ export default function ViewUser({
                                 <Button
                                     type="button"
                                     variant="secondary"
-                                    onClick={() => onEdit(user)}
+                                    disabled={isLoadingAbsences}
+                                    onClick={() => setIsEditUserOpen(true)}
                                 >
                                     Edit User
                                 </Button>
                                 <Button
                                     type="button"
+                                    disabled={isLoadingAbsences || Boolean(absenceFetchError)}
                                     onClick={() => setIsUpdateModalOpen(true)}
                                 >
-                                    Manage Availability
+                                    Manage Unavailability
                                 </Button>
                             </div>
                         </div>
@@ -185,7 +332,22 @@ export default function ViewUser({
                             <div className={styles.unavailabilityHeader}>
                                 <h3>Unavailability ({upcomingPeriods.length})</h3>
                             </div>
-                            {upcomingPeriods.length > 0 ? (
+                            {isLoadingAbsences ? (
+                                <p>Loading absences...</p>
+                            ) : absenceFetchError ? (
+                                <div role="alert">
+                                    <p>{absenceFetchError}</p>
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        onClick={() =>
+                                            setAbsenceRetryCount((count) => count + 1)
+                                        }
+                                    >
+                                        Retry
+                                    </Button>
+                                </div>
+                            ) : upcomingPeriods.length > 0 ? (
                                 <ul className={styles.chipList}>
                                     {upcomingPeriods.map((period) => (
                                         <li key={period.id} className={styles.chip}>
@@ -198,18 +360,21 @@ export default function ViewUser({
                                             <span className={styles.periodDates}>
                                                 {formatDate(period.startDate)} – {formatDate(period.endDate)}
                                             </span>
+                                            {period.reason && (
+                                                <span className={styles.periodReason}>
+                                                    {period.reason}
+                                                </span>
+                                            )}
                                             <span className={styles.periodDuration}>
-                                                {getPeriodDays(period.startDate, period.endDate)} days
+                                                {getPeriodDuration(period)}
                                             </span>
                                             <button
                                                 type="button"
                                                 className={styles.removeChip}
                                                 aria-label={`Remove unavailability ${period.startDate} to ${period.endDate}`}
+                                                disabled={deletingAbsenceId !== null}
                                                 onClick={() =>
-                                                    onRemoveUnavailability(
-                                                        user.id,
-                                                        period.id
-                                                    )
+                                                    void handleRemoveUnavailability(period.id)
                                                 }
                                             >
                                                 ×
@@ -228,7 +393,7 @@ export default function ViewUser({
             </Modal>
 
             <Modal
-                isOpen={user !== null && isUpdateModalOpen}
+                isOpen={user !== null && isUpdateModalOpen && !isLoadingAbsences && !absenceFetchError}
                 onClose={() => {
                     setIsUpdateModalOpen(false);
                     onClose();
@@ -318,7 +483,10 @@ export default function ViewUser({
                                         </small>
                                     )}
                                 </div>
-                                <Button type="submit">
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmittingAbsence}
+                                >
                                     {editingPeriodId === null
                                         ? "+ Add Period"
                                         : "Save Changes"}
@@ -344,8 +512,13 @@ export default function ViewUser({
                                                 <span className={styles.periodDates}>
                                                     {formatDate(period.startDate)} – {formatDate(period.endDate)}
                                                 </span>
+                                                {period.reason && (
+                                                    <span className={styles.periodReason}>
+                                                        {period.reason}
+                                                    </span>
+                                                )}
                                                 <span className={styles.periodDuration}>
-                                                    {getPeriodDays(period.startDate, period.endDate)} days
+                                                    {getPeriodDuration(period)}
                                                 </span>
                                                 <button
                                                     type="button"
@@ -366,8 +539,9 @@ export default function ViewUser({
                                                     type="button"
                                                     className={`${styles.periodAction} ${styles.deletePeriod}`}
                                                     aria-label={`Delete unavailability ${period.startDate} to ${period.endDate}`}
+                                                    disabled={deletingAbsenceId !== null}
                                                     onClick={() =>
-                                                        onRemoveUnavailability(user.id, period.id)
+                                                        void handleRemoveUnavailability(period.id)
                                                     }
                                                 >
                                                     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -383,6 +557,15 @@ export default function ViewUser({
                     </>
                 )}
             </Modal>
+
+            <EditUser
+                user={isEditUserOpen ? user : null}
+                onClose={() => {
+                    setIsEditUserOpen(false);
+                    onClose();
+                }}
+                onUpdate={onUserChange}
+            />
         </>
     );
 }

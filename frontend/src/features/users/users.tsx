@@ -1,152 +1,124 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import Button from "../../components/button/Button";
-import Notification from "../../components/notification/notification";
+import { getUserAbsences, getUsers } from "./usersApi";
 import CreateUser from "./components/createUser/createUser";
-import EditUser from "./components/editUser/editUser";
 import UserTable from "./components/userTable/userTable";
 import ViewUser from "./components/viewUser/viewUser";
 import type {
-    UnavailabilityPeriod,
+    ApiUser,
     User,
-    UserFormValues,
-    UserRole,
 } from "./usersTypes";
-import {
-    getUserRoleLabel,
-    USER_ROLE_OPTIONS,
-} from "./usersTypes";
+import { toUnavailabilityPeriod } from "./usersTypes";
 import styles from "./users.module.css";
+
+function toUser(apiUser: ApiUser): User {
+    const name = [apiUser.first_name, apiUser.last_name]
+        .filter(Boolean)
+        .join(" ");
+
+    return {
+        ...apiUser,
+        name: name || apiUser.username,
+        unavailabilities: [],
+        unavailabilitiesLoaded: false,
+    };
+}
 
 export default function Users() {
     const [users, setUsers] = useState<User[]>([]);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [selectedRole, setSelectedRole] = useState<UserRole | "">("");
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+    const [userFetchError, setUserFetchError] = useState("");
+    const [isLoadingAbsences, setIsLoadingAbsences] = useState(false);
+    const [absenceFetchError, setAbsenceFetchError] = useState("");
     const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-    const [userToEdit, setUserToEdit] = useState<User | null>(null);
-    const [successMessage, setSuccessMessage] = useState("");
-    const selectedUser =
-        users.find((user) => user.id === selectedUserId) ?? null;
-    const filteredUsers = users.filter((user) => {
-        const searchValue = searchTerm.trim().toLowerCase();
-        return (
-            (user.name.toLowerCase().includes(searchValue) ||
-                getUserRoleLabel(user.role).toLowerCase().includes(searchValue)) &&
-            (!selectedRole || user.role === selectedRole)
+
+    const fetchAbsencesForUsers = useCallback(async (usersToLoad: User[]) => {
+        setIsLoadingAbsences(true);
+        setAbsenceFetchError("");
+
+        const results = await Promise.allSettled(
+            usersToLoad.map((user) => getUserAbsences(user.id))
         );
-    });
-
-    const handleCreateModalOpen = () => {
-        setSuccessMessage("");
-        setIsCreateModalOpen(true);
-    };
-
-    const handleEditUser = (user: User) => {
-        setSelectedUserId(null);
-        setSuccessMessage("");
-        setUserToEdit(user);
-    };
-
-    const handleCreateUser = (values: UserFormValues) => {
-        setUsers((currentUsers) => {
-            const nextId = currentUsers.reduce(
-                (maxId, user) => Math.max(maxId, user.id),
-                0
-            ) + 1;
-
-            return [
-                ...currentUsers,
-                { id: nextId, ...values, unavailabilities: [] },
-            ];
-        });
-        setIsCreateModalOpen(false);
-        setSuccessMessage("User created successfully!");
-    };
-
-    const handleUpdateUser = (values: UserFormValues) => {
-        if (!userToEdit) {
-            return;
-        }
+        const resultsByUserId = new Map(
+            usersToLoad.map((user, index) => [user.id, results[index]] as const)
+        );
+        const failedCount = results.filter(
+            (result) => result.status === "rejected"
+        ).length;
 
         setUsers((currentUsers) =>
+            currentUsers.map((currentUser) => {
+                const result = resultsByUserId.get(currentUser.id);
+                if (!result || result.status === "rejected") {
+                    return currentUser;
+                }
+
+                return {
+                    ...currentUser,
+                    unavailabilities: result.value.map(toUnavailabilityPeriod),
+                    unavailabilitiesLoaded: true,
+                };
+            })
+        );
+        if (failedCount > 0) {
+            setAbsenceFetchError(
+                `Failed to load absences for ${failedCount} user${failedCount === 1 ? "" : "s"}.`
+            );
+        }
+        setIsLoadingAbsences(false);
+    }, []);
+
+    const fetchUsers = useCallback(async () => {
+        try {
+            setIsLoadingUsers(true);
+            setUserFetchError("");
+            setAbsenceFetchError("");
+            const data = await getUsers();
+            const usersWithNoAbsences = data.map(toUser);
+            setUsers(usersWithNoAbsences);
+            await fetchAbsencesForUsers(usersWithNoAbsences);
+        } catch (error) {
+            setUserFetchError(
+                error instanceof Error ? error.message : "Failed to load users."
+            );
+        } finally {
+            setIsLoadingUsers(false);
+        }
+    }, [fetchAbsencesForUsers]);
+
+    useEffect(() => {
+        void fetchUsers();
+    }, [fetchUsers]);
+
+    const selectedUser =
+        users.find((user) => user.id === selectedUserId) ?? null;
+    const handleUserCreated = (apiUser: ApiUser) => {
+        const createdUser = {
+            ...toUser(apiUser),
+            unavailabilitiesLoaded: true,
+        };
+        setUsers((currentUsers) =>
+            [...currentUsers, createdUser].sort((first, second) =>
+                first.username.localeCompare(second.username)
+            )
+        );
+    };
+
+    const handleUserChange = (updatedUser: User) => {
+        setUsers((currentUsers) =>
             currentUsers.map((user) =>
-                user.id === userToEdit.id
-                    ? { ...user, ...values }
+                user.id === updatedUser.id
+                    ? updatedUser
                     : user
             )
         );
-        setUserToEdit(null);
-        setSuccessMessage("User updated successfully!");
     };
 
-    const handleAddUnavailability = (
-        userId: number,
-        period: Omit<UnavailabilityPeriod, "id">
-    ) => {
-        const user = users.find((currentUser) => currentUser.id === userId);
-        if (!user) return;
-
-        const nextId = user.unavailabilities.reduce(
-            (maxId, currentPeriod) => Math.max(maxId, currentPeriod.id),
-            0
-        ) + 1;
-        const updatedPeriods = [
-            ...user.unavailabilities,
-            { id: nextId, ...period },
-        ];
-
+    const handleUserDeleted = (userId: number) => {
         setUsers((currentUsers) =>
-            currentUsers.map((currentUser) =>
-                currentUser.id === userId
-                    ? { ...currentUser, unavailabilities: updatedPeriods }
-                    : currentUser
-            )
+            currentUsers.filter((user) => user.id !== userId)
         );
-        console.log("User unavailability periods:", updatedPeriods);
-    };
-
-    const handleRemoveUnavailability = (
-        userId: number,
-        periodId: number
-    ) => {
-        const user = users.find((currentUser) => currentUser.id === userId);
-        if (!user) return;
-
-        const updatedPeriods = user.unavailabilities.filter(
-            (period) => period.id !== periodId
-        );
-
-        setUsers((currentUsers) =>
-            currentUsers.map((currentUser) =>
-                currentUser.id === userId
-                    ? { ...currentUser, unavailabilities: updatedPeriods }
-                    : currentUser
-            )
-        );
-        console.log("User unavailability periods:", updatedPeriods);
-    };
-
-    const handleUpdateUnavailability = (
-        userId: number,
-        periodId: number,
-        values: Omit<UnavailabilityPeriod, "id">
-    ) => {
-        const user = users.find((currentUser) => currentUser.id === userId);
-        if (!user) return;
-
-        const updatedPeriods = user.unavailabilities.map((period) =>
-            period.id === periodId ? { ...period, ...values } : period
-        );
-
-        setUsers((currentUsers) =>
-            currentUsers.map((currentUser) =>
-                currentUser.id === userId
-                    ? { ...currentUser, unavailabilities: updatedPeriods }
-                    : currentUser
-            )
-        );
-        console.log("User unavailability periods:", updatedPeriods);
     };
 
     return (
@@ -158,12 +130,8 @@ export default function Users() {
                         Manage users, their roles, and availability.
                     </p>
                 </div>
-                <Button type="button" onClick={handleCreateModalOpen}>
-                    + Create User
-                </Button>
+                <CreateUser onCreated={handleUserCreated} />
             </div>
-
-            <Notification type="success" message={successMessage} />
 
             <section
                 className={styles.memberSummaryCard}
@@ -189,85 +157,49 @@ export default function Users() {
                 </div>
             </section>
 
-            <div className={styles.toolbar}>
-                <div className={styles.searchContainer}>
-                    <span className={styles.searchIcon} aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                            <circle cx="11" cy="11" r="7" />
-                            <path d="m20 20-4-4" />
-                        </svg>
-                    </span>
-                    <input
-                        type="text"
-                        className={styles.searchInput}
-                        placeholder="Search users by name..."
-                        value={searchTerm}
-                        onChange={(event) => setSearchTerm(event.target.value)}
-                        aria-label="Search users"
-                    />
-                    {searchTerm && (
-                        <button
-                            type="button"
-                            className={styles.clearSearchButton}
-                            onClick={() => setSearchTerm("")}
-                            aria-label="Clear search"
-                        >
-                            ×
-                        </button>
-                    )}
-                </div>
-
-                <div className={styles.filterGroup}>
-                    <label htmlFor="user-role-filter">Role</label>
-                    <select
-                        id="user-role-filter"
-                        value={selectedRole}
-                        onChange={(event) => {
-                            const nextRole = USER_ROLE_OPTIONS.find(
-                                (option) => option.value === event.target.value
-                            );
-                            setSelectedRole(nextRole?.value ?? "");
-                        }}
+            {absenceFetchError && (
+                <div role="alert">
+                    <p>{absenceFetchError}</p>
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={isLoadingAbsences}
+                        onClick={() =>
+                            void fetchAbsencesForUsers(
+                                users.filter((user) => !user.unavailabilitiesLoaded)
+                            )
+                        }
                     >
-                        <option value="">All Roles</option>
-                        {USER_ROLE_OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
+                        {isLoadingAbsences ? "Retrying..." : "Retry absences"}
+                    </Button>
                 </div>
-            </div>
+            )}
 
-            <UserTable
-                users={filteredUsers}
-                emptyMessage={
-                    searchTerm.trim() || selectedRole
-                        ? "No users match these filters."
-                        : "No users have been added yet."
-                }
-                onUserClick={(user) => setSelectedUserId(user.id)}
-            />
-
-            <CreateUser
-                isOpen={isCreateModalOpen}
-                onClose={() => setIsCreateModalOpen(false)}
-                onCreate={handleCreateUser}
-            />
-
-            <EditUser
-                user={userToEdit}
-                onClose={() => setUserToEdit(null)}
-                onUpdate={handleUpdateUser}
-            />
+            {isLoadingUsers ? (
+                <p>Loading users...</p>
+            ) : userFetchError ? (
+                <div role="alert">
+                    <p>{userFetchError}</p>
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => void fetchUsers()}
+                    >
+                        Retry
+                    </Button>
+                </div>
+            ) : (
+                <UserTable
+                    users={users}
+                    onUserClick={(user) => setSelectedUserId(user.id)}
+                    onUserDelete={handleUserDeleted}
+                />
+            )}
 
             <ViewUser
                 user={selectedUser}
                 onClose={() => setSelectedUserId(null)}
-                onEdit={handleEditUser}
-                onAddUnavailability={handleAddUnavailability}
-                onRemoveUnavailability={handleRemoveUnavailability}
-                onUpdateUnavailability={handleUpdateUnavailability}
+                onUserChange={handleUserChange}
             />
         </main>
     );
