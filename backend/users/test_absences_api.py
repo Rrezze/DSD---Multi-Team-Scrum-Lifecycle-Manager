@@ -199,3 +199,25 @@ class AbsenceListApiTests(APITestCase):
         response = self.get("?from=2026-11-29&to=2026-11-16")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("to", response.data)
+
+
+class DeactivatedUserAbsenceApiTests(APITestCase):
+    def setUp(self):
+        self.ana = User.objects.create_user(username="ana")
+        Absence.objects.create(user=self.ana, start_date="2026-11-10", end_date="2026-11-12")
+        self.ana.is_active = False
+        self.ana.save()
+
+    def test_cannot_add_absence_to_deactivated_user(self):
+        response = self.client.post(user_url(self.ana),
+                                    {"start_date": "2026-12-01", "end_date": "2026-12-02"},
+                                    format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual([str(e) for e in response.data["non_field_errors"]],
+                         ["This user is deactivated."])
+        self.assertEqual(self.ana.absences.count(), 1)
+
+    def test_old_absences_of_deactivated_user_can_still_be_read(self):
+        response = self.client.get(user_url(self.ana))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
