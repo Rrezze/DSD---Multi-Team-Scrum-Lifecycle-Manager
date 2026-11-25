@@ -1,6 +1,12 @@
+import re
+
 from rest_framework import serializers
 
 from .models import DEFAULT_PO_USERNAME, Absence, User
+
+
+# Usernames are short names like "ana.petrovic", not emails.
+USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9._]+$")
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -13,6 +19,10 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "is_active"]
 
     def validate_username(self, value):
+        if not USERNAME_PATTERN.match(value):
+            raise serializers.ValidationError(
+                "Username can only contain letters, numbers, dots and underscores."
+            )
         # Login ignores upper/lower case, so "Ana" and "ana" can't both exist.
         others = User.objects.filter(username__iexact=value)
         if self.instance is not None:

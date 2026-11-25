@@ -64,6 +64,23 @@ class CreateUserApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("username", response.data)
 
+    def test_email_as_username_is_rejected(self):
+        response = self.create(username="ana@example.com")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data["username"], [
+            "Username can only contain letters, numbers, dots and underscores."
+        ])
+
+    def test_hyphen_and_plus_in_username_are_rejected(self):
+        for username in ["ana-petrovic", "ana+1"]:
+            response = self.create(username=username)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn("username", response.data)
+
+    def test_username_with_dot_underscore_and_numbers(self):
+        response = self.create(username="ana.petrovic_2")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
     def test_unknown_role(self):
         response = self.create(username="ana", role="BOSS")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -148,6 +165,13 @@ class UserDetailApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.ana.refresh_from_db()
         self.assertEqual(self.ana.username, "anna")
+
+    def test_cannot_change_username_to_an_email(self):
+        response = self.patch(self.ana, username="ana@example.com")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("username", response.data)
+        self.ana.refresh_from_db()
+        self.assertEqual(self.ana.username, "ana")
 
     def test_keep_own_username_with_other_case(self):
         response = self.patch(self.ana, username="Ana")
