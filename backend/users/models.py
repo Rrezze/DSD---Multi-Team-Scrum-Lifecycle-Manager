@@ -1,6 +1,11 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+# Created by the users.0002_create_default_po migration and used as the
+# ticket creator when nobody is logged in, so it must keep its username,
+# its role and stay active.
+DEFAULT_PO_USERNAME = "po"
+
 
 class User(AbstractUser):
 

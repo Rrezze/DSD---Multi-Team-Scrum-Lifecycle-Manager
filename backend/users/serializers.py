@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Absence, User
+from .models import DEFAULT_PO_USERNAME, Absence, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -20,6 +20,33 @@ class UserSerializer(serializers.ModelSerializer):
         if others.exists():
             raise serializers.ValidationError("A user with that username already exists.")
         return value
+
+    def validate_email(self, value):
+        # Two active users can't share an email. Empty email is allowed for
+        # many users, and a deactivated user doesn't block its old email.
+        if not value:
+            return value
+        others = User.objects.filter(is_active=True, email__iexact=value)
+        if self.instance is not None:
+            others = others.exclude(pk=self.instance.pk)
+        if others.exists():
+            raise serializers.ValidationError("A user with that email already exists.")
+        return value
+
+    def validate(self, attrs):
+        # The default PO can be renamed (first/last name, email), but its
+        # username and role must stay, the backend relies on them.
+        user = self.instance
+        if user is not None and user.username == DEFAULT_PO_USERNAME:
+            if attrs.get("username", user.username) != user.username:
+                raise serializers.ValidationError(
+                    {"username": "The default Product Owner's username can't be changed."}
+                )
+            if attrs.get("role", user.role) != User.Role.PRODUCT_OWNER:
+                raise serializers.ValidationError(
+                    {"role": "The default Product Owner's role can't be changed."}
+                )
+        return attrs
 
     def create(self, validated_data):
         # create_user leaves the user without a usable password
@@ -42,6 +69,9 @@ class AbsenceSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "user"]
 
     def validate(self, attrs):
+        user = self.context["user"]
+        if not user.is_active:
+            raise serializers.ValidationError("This user is deactivated.")
         start, end = attrs["start_date"], attrs["end_date"]
         if end < start:
             raise serializers.ValidationError(
@@ -58,7 +88,6 @@ class AbsenceSerializer(serializers.ModelSerializer):
                     {"hours": f"Hours must be between 1 and {MAX_HOURS_PER_DAY}."}
                 )
         # Two absences of the same user on the same days would count twice.
-        user = self.context["user"]
         if user.absences.filter(start_date__lte=end, end_date__gte=start).exists():
             raise serializers.ValidationError(
                 "This user already has an absence in this period."

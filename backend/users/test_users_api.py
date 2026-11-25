@@ -200,3 +200,89 @@ class DeleteUserApiTests(APITestCase):
         self.client.delete(detail(self.ana))
         ticket.refresh_from_db()
         self.assertEqual(ticket.created_by, self.ana)
+
+
+class UniqueEmailApiTests(APITestCase):
+    def setUp(self):
+        self.ana = User.objects.create_user(username="ana", email="ana@example.com")
+
+    def create(self, **data):
+        return self.client.post(LIST, data, format="json")
+
+    def test_two_active_users_cannot_share_an_email(self):
+        response = self.create(username="ana2", email="ana@example.com")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual([str(e) for e in response.data["email"]],
+                         ["A user with that email already exists."])
+
+    def test_email_check_ignores_case(self):
+        response = self.create(username="ana2", email="ANA@Example.com")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("email", response.data)
+
+    def test_cannot_change_email_to_another_users_email(self):
+        marko = User.objects.create_user(username="marko", email="marko@example.com")
+        response = self.client.patch(detail(marko), {"email": "ana@example.com"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("email", response.data)
+
+    def test_user_can_keep_own_email(self):
+        response = self.client.patch(detail(self.ana), {"email": "ANA@example.com",
+                                                        "first_name": "Ana"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_many_users_without_email(self):
+        self.assertEqual(self.create(username="a1").status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.create(username="a2", email="").status_code,
+                         status.HTTP_201_CREATED)
+
+    def test_email_of_deactivated_user_can_be_used_again(self):
+        self.client.delete(detail(self.ana))
+        response = self.create(username="ana.new", email="ana@example.com")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+class DefaultProductOwnerApiTests(APITestCase):
+    def setUp(self):
+        self.po = User.objects.get(username="po")
+
+    def patch(self, **data):
+        return self.client.patch(detail(self.po), data, format="json")
+
+    def test_default_po_can_be_renamed(self):
+        response = self.patch(first_name="Lucia", last_name="Famoso", email="lucia@example.com")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.po.refresh_from_db()
+        self.assertEqual(self.po.get_full_name(), "Lucia Famoso")
+
+    def test_default_po_username_cannot_change(self):
+        for username in ("lucia", "PO"):
+            with self.subTest(username=username):
+                response = self.patch(username=username)
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertIn("username", response.data)
+        self.po.refresh_from_db()
+        self.assertEqual(self.po.username, "po")
+
+    def test_sending_the_same_username_is_fine(self):
+        self.assertEqual(self.patch(username="po").status_code, status.HTTP_200_OK)
+
+    def test_default_po_role_cannot_change(self):
+        response = self.patch(role="DEVELOPER")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("role", response.data)
+        self.po.refresh_from_db()
+        self.assertEqual(self.po.role, User.Role.PRODUCT_OWNER)
+
+    def test_tickets_can_still_be_created_after_renaming_the_po(self):
+        self.patch(first_name="Lucia")
+        response = self.client.post("/api/tickets/", {"type": "TASK", "title": "T"},
+                                    format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["created_by"], self.po.pk)
+
+    def test_other_users_can_change_username_and_role(self):
+        ana = User.objects.create_user(username="ana")
+        response = self.client.patch(detail(ana), {"username": "anna",
+                                                   "role": "PRODUCT_OWNER"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

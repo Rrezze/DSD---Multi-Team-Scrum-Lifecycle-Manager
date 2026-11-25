@@ -8,7 +8,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Absence, User
+from .models import DEFAULT_PO_USERNAME, Absence, User
 from .serializers import AbsenceSerializer, LoginSerializer, UserSerializer
 
 
@@ -30,11 +30,6 @@ class LoginView(APIView):
         if user is None:
             raise ValidationError({"username": "User not found."})
         return Response(UserSerializer(user).data)
-
-
-# Created by the users.0002_create_default_po migration and used as the
-# ticket creator, so it must stay active.
-DEFAULT_PO_USERNAME = "po"
 
 
 @extend_schema_view(
