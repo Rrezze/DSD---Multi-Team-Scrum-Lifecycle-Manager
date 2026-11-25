@@ -6,6 +6,9 @@ class Team(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
+    # Capacity (story points) estimated by hand, used in the team's first
+    # sprint, before there is any history to compute it from.
+    base_capacity_points = models.PositiveSmallIntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.name
