@@ -31,14 +31,14 @@ import { getBacklogTickets, getTeams } from "./productBacklogApi";
 
 import type { BacklogTicket, Team} from "./productBacklogTypes";
 
-import type { BacklogPermissions } from "../login/rolePermissions";
+import { useAuth } from "../authentication/authContext";
 
 interface ProductBacklogProps {
-    permissions: BacklogPermissions;
     focusHeading?: boolean;
 }
 
-export default function ProductBacklog({ permissions, focusHeading = false }: ProductBacklogProps) {
+export default function ProductBacklog({ focusHeading = false }: ProductBacklogProps) {
+    const { permissions } = useAuth();
     const heading = useRef<HTMLHeadingElement>(null);
 
     useEffect(() => {
@@ -304,36 +304,44 @@ export default function ProductBacklog({ permissions, focusHeading = false }: Pr
                             ))}
                         </select>
 
-                        {teamFetchError && (
-                            <p role="alert">{teamFetchError}</p>
-                        )}
                     </div>
                 </div>
             </div>
 
+            {(teamFetchError || ticketFetchError) && (
+                <div className={styles.errorMessages}>
+                    {teamFetchError && (
+                        <div className={styles.fetchError} role="alert">
+                            <p>{teamFetchError}</p>
+                        </div>
+                    )}
+
+                    {ticketFetchError && (
+                        <div className={styles.fetchError} role="alert">
+                            <p>{ticketFetchError}</p>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={() => void fetchTickets()}
+                            >
+                                Retry
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Product Backlog Table */}
             {isLoadingTickets ? (
                 <p>Loading backlog tickets...</p>
-            ) : ticketFetchError ? (
-                <div role="alert">
-                    <p>{ticketFetchError}</p>
-
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={() => void fetchTickets()}
-                    >
-                        Retry
-                    </Button>
-                </div>
-            ) : (
+            ) : !ticketFetchError ? (
                 <ProductBacklogTable
                     canReorder={permissions.canReorderTickets}
                     tickets={tickets}
                     parentTickets={allTickets}
                     onTicketClick={handleTicketClick}
                 />
-            )}
+            ) : null}
 
             {/* Create Ticket */}
             {permissions.canCreateTickets && (

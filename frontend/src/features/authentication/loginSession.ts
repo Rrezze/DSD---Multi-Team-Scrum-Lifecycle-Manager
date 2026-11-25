@@ -35,6 +35,7 @@ export function saveSessionUser(user: LoginUser) {
     };
     try {
         sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        return session;
     } catch {
         throw new Error("Unable to save your session. Allow browser storage and try again.");
     }

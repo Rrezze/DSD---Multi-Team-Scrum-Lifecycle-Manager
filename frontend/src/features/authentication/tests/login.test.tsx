@@ -2,7 +2,8 @@ import "@testing-library/jest-dom/vitest";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, fireEvent, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import Login from "../login";
+import Login from "../components/login/login";
+import { AuthProvider } from "../authContext";
 
 function openLogin() {
     render(
@@ -11,7 +12,8 @@ function openLogin() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/productbacklog" element={<h1>Product Backlog</h1>} />
             </Routes>
-        </MemoryRouter>
+        </MemoryRouter>,
+        { wrapper: AuthProvider }
     );
     return screen.getByRole("textbox", { name: "Username" });
 }

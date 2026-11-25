@@ -173,6 +173,30 @@
     margin-bottom: 20px;
 }
 
+.errorMessages {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.fetchError {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    background-color: #fef2f2;
+    color: #991b1b;
+}
+
+.fetchError p {
+    margin: 0;
+}
+
 /* Search */
 .searchContainer {
     display: flex;
@@ -302,5 +326,10 @@
 
     .filterGroup select {
         width: 100%;
+    }
+
+    .fetchError {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }

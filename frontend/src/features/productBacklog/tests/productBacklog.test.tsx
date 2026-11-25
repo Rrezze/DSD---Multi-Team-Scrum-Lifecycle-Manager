@@ -4,7 +4,9 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { http, HttpResponse } from "msw";
 
-import { getBacklogPermissions } from "../../login/rolePermissions";
+import { AuthProvider } from "../../authentication/authContext";
+import { saveSessionUser } from "../../authentication/loginSession";
+import { loginUser } from "../../authentication/tests/login.fixtures";
 import ProductBacklog from "../productBacklog";
 import { server } from "../../../tests/mocks/server";
 import API_ENDPOINTS from "../../../constants/apiEndPoints";
@@ -13,6 +15,7 @@ import { backlogTickets } from "./productBacklog.fixtures";
 describe("ProductBacklog", () => {
 
     beforeEach(() => {
+        saveSessionUser({ ...loginUser, role: "ENGINEERING_MANAGER" });
         server.resetHandlers();
         server.use(
         http.get(API_ENDPOINTS.TEAMS, () => {
@@ -51,7 +54,7 @@ describe("ProductBacklog", () => {
     describe("Page rendering", () => {
 
         it("should render the Product Backlog page", () => {
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             expect(
                 screen.getByRole("heading", {
@@ -61,7 +64,7 @@ describe("ProductBacklog", () => {
         });
 
         it("should not display the modal initially", () => {
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
         });
@@ -71,7 +74,7 @@ describe("ProductBacklog", () => {
     describe("Backlog loading", () => {
 
         it("should show a loading message while tickets are being fetched", () => {
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             expect(
                 screen.getByText("Loading backlog tickets...")
@@ -79,7 +82,7 @@ describe("ProductBacklog", () => {
         });
 
         it("should render fetched tickets in the backlog table", async () => {
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             expect(
                 await screen.findByText("Implement login")
@@ -98,7 +101,7 @@ describe("ProductBacklog", () => {
                 })
             );
 
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             expect(
                 await screen.findByText(
@@ -127,7 +130,7 @@ describe("ProductBacklog", () => {
                 })
             );
 
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             expect(await screen.findByRole("alert")).toHaveTextContent(
                 "Unable to load tickets.");
@@ -140,12 +143,37 @@ describe("ProductBacklog", () => {
             expect(requestCount).toBe(3);
         });
 
+        it("should align ticket and team fetch errors in the same section", async () => {
+            server.use(
+                http.get(API_ENDPOINTS.TICKETS, () =>
+                    HttpResponse.json(
+                        { detail: "Unable to load tickets." },
+                        { status: 500 }
+                    )
+                ),
+                http.get(API_ENDPOINTS.TEAMS, () =>
+                    HttpResponse.json(
+                        { detail: "Unable to load teams." },
+                        { status: 500 }
+                    )
+                )
+            );
+
+            render(<ProductBacklog />, { wrapper: AuthProvider });
+
+            await waitFor(() => expect(screen.getAllByRole("alert")).toHaveLength(2));
+            const alerts = screen.getAllByRole("alert");
+
+            expect(alerts[0]?.parentElement).toBe(alerts[1]?.parentElement);
+            expect(screen.getByRole("button", { name: "Retry" })).toBeVisible();
+        });
+
     });
 
     describe("Ticket details", () => {
 
         it("should open a selected ticket's details and close the dialog", async () => {
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             fireEvent.click(await screen.findByText("Implement login"));
 
@@ -173,7 +201,7 @@ describe("ProductBacklog", () => {
     describe("Modal behaviour", () => {
 
         it("should open the modal when Create Ticket is clicked", () => {
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             openModal();
 
@@ -187,7 +215,7 @@ describe("ProductBacklog", () => {
         });
 
         it("should close the modal when Cancel is clicked", () => {
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             openModal();
 
@@ -199,7 +227,7 @@ describe("ProductBacklog", () => {
         });
 
         it("should reset the form when the modal is closed and reopened", () => {
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             openModal();
             fillValidForm();
@@ -224,7 +252,7 @@ describe("ProductBacklog", () => {
         });
 
         it("should hide the parent field when Epic is selected", () => {
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             openModal();
 
@@ -243,7 +271,7 @@ describe("ProductBacklog", () => {
     describe("Form validation", () => {
 
         it("should display validation errors when required fields are empty", () => {
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             openModal();
 
@@ -260,7 +288,7 @@ describe("ProductBacklog", () => {
         });
 
         it("should reject a non-positive or decimal estimate", () => {
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             openModal();
 
@@ -304,7 +332,7 @@ describe("ProductBacklog", () => {
                     );
                 })
             );
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             openModal();
             fillValidForm();
@@ -325,7 +353,7 @@ describe("ProductBacklog", () => {
         });
 
         it("should display a success notification after successful creation", async () => {
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             openModal();
             fillValidForm();
@@ -342,7 +370,7 @@ describe("ProductBacklog", () => {
         });
 
         it("should reset the form after successful creation", async () => {
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             openModal();
             fillValidForm();
@@ -374,7 +402,7 @@ describe("ProductBacklog", () => {
                 })
             );
 
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             openModal();
             fillValidForm();
@@ -400,7 +428,7 @@ describe("ProductBacklog", () => {
                 })
             );
 
-            render(<ProductBacklog permissions={getBacklogPermissions("ENGINEERING_MANAGER")} />);
+            render(<ProductBacklog />, { wrapper: AuthProvider });
 
             openModal();
             fillValidForm();
