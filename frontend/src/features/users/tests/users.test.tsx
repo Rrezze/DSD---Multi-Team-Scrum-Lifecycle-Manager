@@ -136,10 +136,12 @@ describe("Users", () => {
         expect(await screen.findByText("Existing User")).toBeInTheDocument();
         expect(
             screen.getByRole("row", { name: "View Existing User" })
-        ).toHaveTextContent("12");
+        ).toHaveTextContent("existing");
         expect(
             screen.getByRole("row", { name: "View Existing User" })
         ).toHaveTextContent("1 period (2 days)");
+        expect(screen.queryByRole("columnheader", { name: "ID" })).not.toBeInTheDocument();
+        expect(screen.getByRole("columnheader", { name: "USERNAME" })).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "+ Create User" }));
         expect(
             within(screen.getByRole("dialog")).getByLabelText("Role")
@@ -160,6 +162,9 @@ describe("Users", () => {
         expect(
             screen.getByRole("row", { name: "View Ada Lovelace" })
         ).toHaveTextContent("Developer");
+        expect(
+            screen.getByRole("row", { name: "View Ada Lovelace" })
+        ).toHaveTextContent("ada");
         expect(
             screen.getByRole("columnheader", { name: "ACTIONS" })
         ).toBeInTheDocument();
@@ -234,6 +239,41 @@ describe("Users", () => {
         ).toHaveTextContent("2 periods (14 days)");
     });
 
+    it("sorts users by ascending ID without showing the ID column", async () => {
+        server.use(
+            http.get(API_ENDPOINTS.USERS, () =>
+                HttpResponse.json([
+                    {
+                        id: 10,
+                        username: "high-id",
+                        email: "",
+                        first_name: "High",
+                        last_name: "ID",
+                        role: UserRole.DEVELOPER,
+                        is_active: true,
+                    },
+                    {
+                        id: 2,
+                        username: "low-id",
+                        email: "",
+                        first_name: "Low",
+                        last_name: "ID",
+                        role: UserRole.DEVELOPER,
+                        is_active: true,
+                    },
+                ])
+            )
+        );
+        render(<Users />);
+
+        await screen.findByRole("row", { name: "View Low ID" });
+        expect(
+            screen.getAllByRole("row")
+                .slice(1)
+                .map((row) => row.getAttribute("aria-label"))
+        ).toEqual(["View Low ID", "View High ID"]);
+    });
+
     it("requires a username before creating a user", async () => {
         await renderUsers();
 
@@ -296,7 +336,7 @@ describe("Users", () => {
                     {
                         id: 21,
                         username: "ana",
-                        email: "",
+                        email: "ana@example.com",
                         first_name: "Ana",
                         last_name: "Dev",
                         role: UserRole.DEVELOPER,
@@ -323,6 +363,11 @@ describe("Users", () => {
 
         expect(await screen.findByText("Unavailability (1)")).toBeInTheDocument();
         expect(screen.getByText("Holiday")).toBeInTheDocument();
+        const dialog = screen.getByRole("dialog");
+        expect(within(dialog).getByText("ana")).toBeInTheDocument();
+        expect(within(dialog).getByText("Ana", { selector: "p" })).toBeInTheDocument();
+        expect(within(dialog).getByText("Dev", { selector: "p" })).toBeInTheDocument();
+        expect(within(dialog).getByText("ana@example.com")).toBeInTheDocument();
     });
 
     it("closes both user dialogs from the Manage Unavailability close button", async () => {

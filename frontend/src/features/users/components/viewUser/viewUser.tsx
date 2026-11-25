@@ -319,8 +319,20 @@ export default function ViewUser({
                                 <p>{user.id}</p>
                             </div>
                             <div className={styles.field}>
-                                <label>Name</label>
-                                <p>{user.name}</p>
+                                <label>Username</label>
+                                <p>{user.username}</p>
+                            </div>
+                            <div className={styles.field}>
+                                <label>First name</label>
+                                <p>{user.first_name || "—"}</p>
+                            </div>
+                            <div className={styles.field}>
+                                <label>Last name</label>
+                                <p>{user.last_name || "—"}</p>
+                            </div>
+                            <div className={styles.field}>
+                                <label>Email</label>
+                                <p>{user.email || "—"}</p>
                             </div>
                             <div className={styles.field}>
                                 <label>Role</label>

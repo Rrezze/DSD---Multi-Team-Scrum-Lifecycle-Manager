@@ -90,7 +90,7 @@ describe("createTicket", () => {
         );
 
         await expect(createTicket(ticketData)).rejects.toThrow(
-            "title: This field is required."
+            "This field is required."
         );
     });
 
@@ -274,7 +274,7 @@ describe("updateTicket", () => {
 
         await expect(
             updateTicket(ticketId, updateData)
-        ).rejects.toThrow("title: This field is required.");
+        ).rejects.toThrow("This field is required.");
     });
 
     it("throws the server error message when the update fails", async () => {

@@ -39,13 +39,15 @@ export default function UserTable({
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedRole, setSelectedRole] = useState<UserRole | "">("");
     const searchValue = searchTerm.trim().toLowerCase();
-    const filteredUsers = users.filter((user) =>
-        (user.name.toLowerCase().includes(searchValue) ||
-            user.username.toLowerCase().includes(searchValue) ||
-            user.email.toLowerCase().includes(searchValue) ||
-            getUserRoleLabel(user.role).toLowerCase().includes(searchValue)) &&
-        (!selectedRole || user.role === selectedRole)
-    );
+    const filteredUsers = [...users]
+        .sort((first, second) => first.id - second.id)
+        .filter((user) =>
+            (user.name.toLowerCase().includes(searchValue) ||
+                user.username.toLowerCase().includes(searchValue) ||
+                user.email.toLowerCase().includes(searchValue) ||
+                getUserRoleLabel(user.role).toLowerCase().includes(searchValue)) &&
+            (!selectedRole || user.role === selectedRole)
+        );
 
     const handleRowKeyDown = (
         event: KeyboardEvent<HTMLTableRowElement>,
@@ -122,8 +124,8 @@ export default function UserTable({
                     <table className={styles.table}>
                         <thead>
                             <tr>
-                                <th scope="col">ID</th>
                                 <th scope="col">NAME</th>
+                                <th scope="col">USERNAME</th>
                                 <th scope="col">ROLE</th>
                                 <th scope="col">UNAVAILABILITY</th>
                                 <th scope="col">ACTIONS</th>
@@ -142,8 +144,8 @@ export default function UserTable({
                                         onClick={() => onUserClick(user)}
                                         onKeyDown={(event) => handleRowKeyDown(event, user)}
                                     >
-                                        <td>{user.id}</td>
                                         <td className={styles.nameCell}>{user.name}</td>
+                                        <td>{user.username}</td>
                                         <td>
                                             <span
                                                 className={`${styles.roleBadge} ${styles[roleClassNames[user.role]]}`}
