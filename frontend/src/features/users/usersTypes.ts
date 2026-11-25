@@ -45,6 +45,8 @@ export interface CreateAbsencePayload {
     hours?: number | null;
 }
 
+export type UpdateAbsencePayload = Partial<CreateAbsencePayload>;
+
 export function toUnavailabilityPeriod(
     absence: ApiAbsence
 ): UnavailabilityPeriod {

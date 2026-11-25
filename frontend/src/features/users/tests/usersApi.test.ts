@@ -10,7 +10,7 @@ import {
     deleteUserAbsence,
     getUserAbsences,
     getUsers,
-    replaceUserAbsence,
+    updateUserAbsence,
     updateUser,
 } from "../usersApi";
 import {
@@ -216,62 +216,56 @@ describe("usersApi", () => {
         expect(receivedMethod).toBe("DELETE");
     });
 
-    it("replaces an absence by deleting the old record before creating the new one", async () => {
-        const requestMethods: string[] = [];
+    it("patches an existing absence through the absence detail endpoint", async () => {
+        let receivedMethod = "";
+        let receivedPayload: unknown;
         server.use(
-            http.delete(API_ENDPOINTS.ABSENCE_DETAIL(absence.id), () => {
-                requestMethods.push("DELETE");
-                return new HttpResponse(null, { status: 204 });
-            }),
-            http.post(
-                API_ENDPOINTS.USER_ABSENCES(user.id),
+            http.patch(
+                API_ENDPOINTS.ABSENCE_DETAIL(absence.id),
                 async ({ request }) => {
-                    requestMethods.push("POST");
-                    const payload = await request.json() as Record<string, unknown>;
-                    return HttpResponse.json(
-                        { ...absence, ...payload, id: absence.id + 1 },
-                        { status: 201 }
-                    );
+                    receivedMethod = request.method;
+                    receivedPayload = await request.json();
+                    return HttpResponse.json({
+                        ...absence,
+                        ...createAbsencePayload,
+                    });
                 }
             )
         );
 
         await expect(
-            replaceUserAbsence(user.id, absence, createAbsencePayload)
+            updateUserAbsence(absence.id, createAbsencePayload)
         ).resolves.toEqual({
             ...absence,
             ...createAbsencePayload,
-            id: absence.id + 1,
         });
-        expect(requestMethods).toEqual(["DELETE", "POST"]);
+        expect(receivedMethod).toBe("PATCH");
+        expect(receivedPayload).toEqual(createAbsencePayload);
     });
 
-    it("restores the original absence if a replacement cannot be created", async () => {
-        let postCount = 0;
+    it("surfaces an update error without deleting or recreating the absence", async () => {
+        const requestMethods: string[] = [];
         server.use(
-            http.delete(
-                API_ENDPOINTS.ABSENCE_DETAIL(absence.id),
-                () => new HttpResponse(null, { status: 204 })
-            ),
-            http.post(API_ENDPOINTS.USER_ABSENCES(user.id), async ({ request }) => {
-                postCount += 1;
-                const payload = await request.json() as Record<string, unknown>;
-                if (postCount === 1) {
-                    return HttpResponse.json(
-                        { detail: "The replacement overlaps another absence." },
-                        { status: 400 }
-                    );
-                }
+            http.patch(API_ENDPOINTS.ABSENCE_DETAIL(absence.id), () => {
+                requestMethods.push("PATCH");
                 return HttpResponse.json(
-                    { ...absence, ...payload, id: absence.id + 1 },
-                    { status: 201 }
+                    { detail: "The replacement overlaps another absence." },
+                    { status: 400 }
                 );
+            }),
+            http.delete(API_ENDPOINTS.ABSENCE_DETAIL(absence.id), () => {
+                requestMethods.push("DELETE");
+                return new HttpResponse(null, { status: 204 });
+            }),
+            http.post(API_ENDPOINTS.USER_ABSENCES(user.id), () => {
+                requestMethods.push("POST");
+                return HttpResponse.json(absence, { status: 201 });
             })
         );
 
         await expect(
-            replaceUserAbsence(user.id, absence, createAbsencePayload)
+            updateUserAbsence(absence.id, createAbsencePayload)
         ).rejects.toThrow("The replacement overlaps another absence.");
-        expect(postCount).toBe(2);
+        expect(requestMethods).toEqual(["PATCH"]);
     });
 });
