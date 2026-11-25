@@ -1,0 +1,420 @@
+.container {
+    width: 100%;
+    min-width: 0;
+    color: var(--color-text-primary);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 24px 56px 24px 28px;
+    border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.userHeading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.avatar {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--color-primary-surface);
+    color: var(--color-primary-hover);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.eyebrow {
+    margin: 0 0 4px;
+    color: var(--color-primary);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.title {
+    margin: 0 0 5px;
+    color: var(--color-text-heading);
+    font-size: 23px;
+    font-weight: 700;
+    line-height: normal;
+    overflow-wrap: anywhere;
+}
+
+.roleBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.productOwner {
+    background: var(--color-ticket-epic-background);
+    color: var(--color-ticket-epic-text);
+}
+
+.developer {
+    background: var(--color-ticket-task-background);
+    color: var(--color-ticket-task-text);
+}
+
+.engineeringManager {
+    background: var(--color-ticket-story-background);
+    color: var(--color-ticket-story-text);
+}
+
+.headerActions {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+}
+
+.headerActions button {
+    padding: 10px 14px;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 18px;
+    margin: 14px 16px;
+    padding: 18px;
+    border: 1px solid var(--color-border);
+    border-radius: 9px;
+    background: var(--color-surface-subtle);
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.field label {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.field p {
+    margin: 0;
+    color: var(--color-text-primary);
+    font-size: 13px;
+    font-weight: 400;
+    overflow-wrap: anywhere;
+}
+
+.unavailability {
+    margin: 0 16px 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border-subtle);
+}
+
+.unavailabilityHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.unavailabilityHeader h3 {
+    margin: 0;
+    color: var(--color-text-heading);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.chipList,
+.periodList {
+    display: grid;
+    gap: 8px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 7px 8px;
+    border: 1px solid var(--color-primary-border);
+    border-radius: 8px;
+    background: var(--color-primary-surface);
+    color: var(--color-text-secondary);
+    font-size: 12px;
+}
+
+.periodIcon {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 23px;
+    height: 23px;
+    border-radius: 6px;
+    background: var(--color-primary-border);
+    color: var(--color-primary-hover);
+}
+
+.periodIcon svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+}
+
+.periodDates {
+    flex: 1;
+    min-width: 0;
+}
+
+.periodReason {
+    flex-shrink: 0;
+    color: var(--color-text-muted);
+    font-size: 11px;
+}
+
+.periodDuration {
+    flex-shrink: 0;
+    padding: 4px 7px;
+    border-radius: 5px;
+    background: var(--color-surface-hover);
+    color: var(--color-text-tertiary);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.removeChip,
+.periodAction {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 4px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+}
+
+.removeChip:hover,
+.periodAction:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-primary-hover);
+}
+
+.removeChip {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.emptyPeriods {
+    margin: 0;
+    padding: 12px;
+    border: 1px dashed var(--color-border-control);
+    border-radius: 7px;
+    color: var(--color-text-muted);
+    font-size: 13px;
+}
+
+.manageHeader {
+    position: relative;
+    padding: 24px 56px 20px 28px;
+    border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.manageIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    background: var(--color-primary-surface);
+    color: var(--color-primary);
+}
+
+.manageIcon svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+}
+
+.manageHeader h2 {
+    margin: 0 0 5px;
+    color: var(--color-text-heading);
+    font-size: 23px;
+    font-weight: 700;
+}
+
+.manageHeader p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 13px;
+}
+
+.manageContent {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.85fr) minmax(250px, 1.25fr);
+    gap: 16px;
+    padding: 20px;
+}
+
+.manageForm {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-self: start;
+    padding: 16px;
+    border: 1px solid var(--color-primary-border);
+    border-radius: 8px;
+    background: var(--color-primary-surface);
+}
+
+.manageForm h3,
+.existingPeriods h3 {
+    margin: 0 0 3px;
+    color: var(--color-text-heading);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.dateField {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.dateField label {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.dateField label span {
+    color: var(--color-danger);
+}
+
+.dateField input {
+    width: 100%;
+    min-height: 40px;
+    padding: 9px 11px;
+    border: 1px solid var(--color-border-control);
+    border-radius: 8px;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    font: inherit;
+    font-size: 13px;
+}
+
+.manageForm > button {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+}
+
+.existingPeriods {
+    min-width: 0;
+}
+
+.existingPeriods h3 {
+    margin-bottom: 10px;
+}
+
+.periodRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 7px;
+    border: 1px solid var(--color-border);
+    border-radius: 7px;
+    background: var(--color-surface);
+}
+
+.periodRow .periodDates {
+    font-size: 12px;
+}
+
+.periodAction svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.deletePeriod {
+    color: var(--color-danger);
+}
+
+.deletePeriod:hover {
+    background: var(--color-danger-surface);
+    color: var(--color-danger-hover);
+}
+
+.error {
+    color: var(--color-danger);
+    font-size: 12px;
+}
+
+@media (max-width: 600px) {
+    .header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 20px 52px 20px 20px;
+    }
+
+    .headerActions {
+        flex-wrap: wrap;
+    }
+
+    .details {
+        margin: 12px;
+        padding: 14px;
+    }
+
+    .unavailability {
+        margin: 0 12px 14px;
+    }
+
+    .manageHeader {
+        padding: 20px 52px 18px 20px;
+    }
+
+    .manageContent {
+        grid-template-columns: 1fr;
+        padding: 16px;
+    }
+}

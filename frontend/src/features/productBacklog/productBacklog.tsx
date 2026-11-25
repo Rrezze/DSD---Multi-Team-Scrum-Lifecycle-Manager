@@ -291,35 +291,43 @@ export default function ProductBacklog() {
                             ))}
                         </select>
 
-                        {teamFetchError && (
-                            <p role="alert">{teamFetchError}</p>
-                        )}
                     </div>
                 </div>
             </div>
 
+            {(teamFetchError || ticketFetchError) && (
+                <div className={styles.errorMessages}>
+                    {teamFetchError && (
+                        <div className={styles.fetchError} role="alert">
+                            <p>{teamFetchError}</p>
+                        </div>
+                    )}
+
+                    {ticketFetchError && (
+                        <div className={styles.fetchError} role="alert">
+                            <p>{ticketFetchError}</p>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={() => void fetchTickets()}
+                            >
+                                Retry
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Product Backlog Table */}
             {isLoadingTickets ? (
                 <p>Loading backlog tickets...</p>
-            ) : ticketFetchError ? (
-                <div role="alert">
-                    <p>{ticketFetchError}</p>
-
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={() => void fetchTickets()}
-                    >
-                        Retry
-                    </Button>
-                </div>
-            ) : (
+            ) : !ticketFetchError ? (
                 <ProductBacklogTable
                     tickets={tickets}
                     parentTickets={allTickets}
                     onTicketClick={handleTicketClick}
                 />
-            )}
+            ) : null}
 
             {/* Create Ticket */}
             <CreateTicket

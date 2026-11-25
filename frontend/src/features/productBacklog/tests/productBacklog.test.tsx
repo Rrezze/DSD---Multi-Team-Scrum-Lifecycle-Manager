@@ -139,6 +139,31 @@ describe("ProductBacklog", () => {
             expect(requestCount).toBe(3);
         });
 
+        it("should align ticket and team fetch errors in the same section", async () => {
+            server.use(
+                http.get(API_ENDPOINTS.TICKETS, () =>
+                    HttpResponse.json(
+                        { detail: "Unable to load tickets." },
+                        { status: 500 }
+                    )
+                ),
+                http.get(API_ENDPOINTS.TEAMS, () =>
+                    HttpResponse.json(
+                        { detail: "Unable to load teams." },
+                        { status: 500 }
+                    )
+                )
+            );
+
+            render(<ProductBacklog />);
+
+            const alerts = await screen.findAllByRole("alert");
+
+            expect(alerts).toHaveLength(2);
+            expect(alerts[0]?.parentElement).toBe(alerts[1]?.parentElement);
+            expect(screen.getByRole("button", { name: "Retry" })).toBeVisible();
+        });
+
     });
 
     describe("Ticket details", () => {

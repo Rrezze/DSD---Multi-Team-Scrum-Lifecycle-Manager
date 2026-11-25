@@ -1,10 +1,23 @@
 
 import { createBrowserRouter } from "react-router-dom";
 import ProductBacklog from "./features/productBacklog/productBacklog";
-export const router = createBrowserRouter([
+import { MainLayout } from "./layouts/mainLayout/mainLayout";
+import Teams from "./features/teams/teams";
+import Users from "./features/users/users";
+import PageNotFound from "./components/pageNotFound/pagenotFound";
 
-    { path: "/", element: <ProductBacklog /> },
-    { path: "/productbacklog", element: <ProductBacklog /> },
-],
+export const routes = [
 
-);
+    {
+        path: "/", element: <MainLayout />,
+        children: [
+            { index: true, element: <ProductBacklog /> },
+            { path: "/productbacklog", element: <ProductBacklog /> },
+            { path: "/users", element: <Users /> },
+            { path: "/teams", element: <Teams /> },
+            { path: "*", element: <PageNotFound /> },
+        ]
+    },
+];
+
+export const router = createBrowserRouter(routes);
