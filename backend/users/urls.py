@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import (
-    AbsenceDeleteView,
+    AbsenceDetailView,
     AbsenceListView,
     LoginView,
     UserAbsenceListCreateView,
@@ -16,5 +16,5 @@ urlpatterns = [
     path("users/<int:user_pk>/absences/", UserAbsenceListCreateView.as_view(),
          name="user-absences"),
     path("absences/", AbsenceListView.as_view(), name="absence-list"),
-    path("absences/<int:pk>/", AbsenceDeleteView.as_view(), name="absence-delete"),
+    path("absences/<int:pk>/", AbsenceDetailView.as_view(), name="absence-detail"),
 ]

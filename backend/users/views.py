@@ -174,8 +174,15 @@ class AbsenceListView(generics.ListAPIView):
         return queryset.order_by("user_id", "start_date", "id")
 
 
-class AbsenceDeleteView(generics.DestroyAPIView):
-    """Delete one absence (the x next to it on the Users page)."""
+class AbsenceDetailView(generics.UpdateAPIView, generics.DestroyAPIView):
+    """One absence.
+
+    PATCH edits it (start_date, end_date, reason, hours) with the same rules
+    as adding one; if the new values are not valid, nothing changes.
+    DELETE removes it (the x next to it on the Users page).
+    """
 
     queryset = Absence.objects.all()
     serializer_class = AbsenceSerializer
+    # only partial updates, no PUT
+    http_method_names = ["patch", "delete", "options"]
