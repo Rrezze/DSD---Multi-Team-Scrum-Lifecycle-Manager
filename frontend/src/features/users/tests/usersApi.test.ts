@@ -152,7 +152,7 @@ describe("usersApi", () => {
         );
 
         await expect(createUser(createPayload)).rejects.toThrow(
-            "username: This username is already taken."
+            "This username is already taken."
         );
     });
 
