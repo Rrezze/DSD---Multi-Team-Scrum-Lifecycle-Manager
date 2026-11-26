@@ -37,7 +37,7 @@ class TeamListCreateView(generics.ListCreateAPIView):
     GET returns all past and present teams, ordered by name (deleted teams
     have is_active=false). Optional filter: ?active=true or ?active=false.
     POST creates a team: name is required and must be unique, description
-    and base_capacity_points are optional.
+    is optional.
     """
 
     serializer_class = TeamSerializer
@@ -56,7 +56,7 @@ class TeamDetailView(generics.RetrieveUpdateDestroyAPIView):
     """One team.
 
     GET returns the team (also when deleted, for past sprints). PATCH
-    changes its name, description or base_capacity_points. DELETE
+    changes its name or description. DELETE
     deactivates the team: it stays in past sprints, and its members are
     moved to "Not in a team" in the current and future sprints.
     """
@@ -193,4 +193,4 @@ class TeamCapacityView(APIView):
             })
         return Response(TeamCapacitySerializer(list(teams.values()), many=True).data)
     
-    
+

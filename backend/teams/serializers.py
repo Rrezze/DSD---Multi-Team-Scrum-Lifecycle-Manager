@@ -11,7 +11,7 @@ from .models import Team, TeamMembership
 class TeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
-        fields = ["id", "name", "description", "is_active", "base_capacity_points"]
+        fields = ["id", "name", "description", "is_active"]
         # is_active only changes through DELETE
         read_only_fields = ["id", "is_active"]
 
