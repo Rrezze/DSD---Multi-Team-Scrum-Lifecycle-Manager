@@ -74,14 +74,14 @@ class SprintDetailApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["name"], "Sprint 2")
-        self.assertEqual(response.data["goal"], "First goal")
+        self.assertEqual(response.data["goal"], "Original goal")
 
     def test_patch_sprint(self):
         response = self.client.patch(self.url, {"goal": "Updated goal"}, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.sprint.refresh_from_db()
-        self.assertEqual(self.sprint.goal, "Second goal")
+        self.assertEqual(self.sprint.goal, "Updated goal")
         self.assertEqual(self.sprint.name, "Sprint 2")
 
     def test_patch_rejects_invalid_date_range(self):
