@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from users.models import User
 
+from .capacity import absent_hours, member_capacity_points
 from .models import Team, TeamMembership
 
 
@@ -27,14 +28,28 @@ class TeamSerializer(serializers.ModelSerializer):
     
 class TeamMembershipSerializer(serializers.ModelSerializer):
     """The team a Developer is in for one sprint, their role in it (Developer
-    or Scrum Master) and how many hours they can work in that sprint."""
+    or Scrum Master) and how many hours they can work in that sprint.
+
+    absent_hours and capacity_points are calculated (read-only)."""
+
+    absent_hours = serializers.SerializerMethodField()
+    capacity_points = serializers.SerializerMethodField()
 
     class Meta:
         model = TeamMembership
-        fields = ["id", "user", "team", "sprint", "role", "available_hours"]
+        fields = [
+            "id", "user", "team", "sprint", "role", "available_hours",
+            "absent_hours", "capacity_points",
+        ]
         # The "one team per user per sprint" rule is checked in validate(),
         # with a clearer message than Django's default one.
         validators = []
+
+    def get_absent_hours(self, obj) -> int:
+        return absent_hours(obj)
+
+    def get_capacity_points(self, obj) -> int:
+        return member_capacity_points(obj)
 
     def validate(self, attrs):
         # On PATCH only the changed fields are sent, so the others are taken
@@ -78,3 +93,20 @@ class TeamMembershipSerializer(serializers.ModelSerializer):
                 {"user": f'This user is already in team "{other.team.name}" in this sprint.'}
             )
         return attrs
+    
+
+
+class MemberCapacitySerializer(serializers.Serializer):
+    membership = serializers.IntegerField()
+    user = serializers.IntegerField()
+    capacity_points = serializers.IntegerField()
+
+
+class TeamCapacitySerializer(serializers.Serializer):
+    """Read-only: a team's capacity in one sprint (TEAM-7)."""
+
+    team = serializers.IntegerField()
+    team_name = serializers.CharField()
+    capacity_points = serializers.IntegerField()
+    members = MemberCapacitySerializer(many=True)
+
