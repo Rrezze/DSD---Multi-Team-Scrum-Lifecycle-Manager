@@ -10,6 +10,8 @@ from rest_framework.views import APIView
 
 from .models import DEFAULT_PO_USERNAME, Absence, User
 from .serializers import AbsenceSerializer, LoginSerializer, UserSerializer
+from django.db import transaction
+from teams.models import TeamMembership
 
 
 class LoginView(APIView):
@@ -72,7 +74,8 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     GET returns the user (also when deactivated, for the history). PATCH
     edits username, name, email or role. DELETE deactivates the user: it
     stays in the database so its tickets and teams keep their history,
-    but it is no longer listed and can't log in.
+    but it is no longer listed and can't log in. It is also removed from
+    its teams in current and future sprints; past sprints keep it.
     """
 
     queryset = User.objects.all()
@@ -83,8 +86,13 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_destroy(self, instance):
         if instance.username == DEFAULT_PO_USERNAME:
             raise ValidationError({"detail": "The default Product Owner can't be deleted."})
-        instance.is_active = False
-        instance.save(update_fields=["is_active"])
+        with transaction.atomic():
+            instance.is_active = False
+            instance.save(update_fields=["is_active"])
+            # A sprint that hasn't ended yet is current or future.
+            TeamMembership.objects.filter(
+                user=instance, sprint__end_date__gte=date.today()
+            ).delete()
 
 
 class UserAbsenceListCreateView(generics.ListCreateAPIView):
