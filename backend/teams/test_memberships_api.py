@@ -125,7 +125,8 @@ class MembershipListApiTests(MembershipApiTestBase):
         )
         self.assertEqual(
             set(response.data[0].keys()),
-            {"id", "user", "team", "sprint", "role", "available_hours"},
+            {"id", "user", "team", "sprint", "role", "available_hours",
+             "absent_hours", "capacity_points"},      
         )
 
     def test_filter_by_user(self):
