@@ -12,11 +12,9 @@ export function getApiErrorMessage(
         return data.message;
     }
 
-    const errors = Object.entries(data).flatMap(([field, value]) =>
+    const errors = Object.values(data).flatMap(value =>
         Array.isArray(value)
-            ? value
-                .filter((item): item is string => typeof item === "string")
-                .map(item => `${field}: ${item}`)
+            ? value.filter((item): item is string => typeof item === "string")
             : []
     );
 
