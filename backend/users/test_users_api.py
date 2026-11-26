@@ -218,6 +218,33 @@ class DeleteUserApiTests(APITestCase):
         po.refresh_from_db()
         self.assertTrue(po.is_active)
 
+    def test_delete_removes_current_and_future_memberships(self):
+        from datetime import date, timedelta
+
+        from sprints.models import Sprint
+        from teams.models import Team, TeamMembership
+
+        today = date.today()
+        team = Team.objects.create(name="Team A")
+        past = Sprint.objects.create(
+            name="Past", start_date=today - timedelta(days=30), end_date=today - timedelta(days=17)
+        )
+        current = Sprint.objects.create(
+            name="Current", start_date=today - timedelta(days=3), end_date=today + timedelta(days=10)
+        )
+        future = Sprint.objects.create(
+            name="Future", start_date=today + timedelta(days=11), end_date=today + timedelta(days=24)
+        )
+        for sprint in (past, current, future):
+            TeamMembership.objects.create(user=self.ana, team=team, sprint=sprint)
+
+        self.client.delete(detail(self.ana))
+
+        remaining = TeamMembership.objects.filter(user=self.ana)
+        self.assertEqual([m.sprint for m in remaining], [past])
+        capacity = self.client.get(f"/api/teams/capacity/?sprint={current.pk}")
+        self.assertEqual(capacity.data, [])
+
     def test_tickets_keep_their_creator_after_delete(self):
         from tickets.models import Ticket
         ticket = Ticket.objects.create(type="TASK", title="T", priority=1, created_by=self.ana)
