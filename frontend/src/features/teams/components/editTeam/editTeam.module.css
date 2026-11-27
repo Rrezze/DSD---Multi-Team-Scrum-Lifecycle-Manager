@@ -1,0 +1,444 @@
+
+/* Main wrapper inside the shared modal. */
+.editTeamPage {
+    width: 100%;
+    min-width: 0;
+    color: var(--color-text);
+}
+
+.pageHeader {
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--color-border);
+    pointer-events: none;
+    position: relative;
+}
+
+.pageHeader::before {
+    content: "TEAMS";
+    display: block;
+    margin-bottom: 8px;
+    color: #2563eb;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+}
+
+.pageHeader h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.pageHeader p {
+    margin: 7px 0 0;
+    color: var(--color-text-muted);
+    font-size: 13px;
+}
+
+/* Form layout and spacing. */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 26px 28px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.formGroup > label {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.formGroup input[type="text"],
+.formGroup input[type="search"],
+.formGroup textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 13px;
+    outline: none;
+}
+
+.formGroup input[type="text"]:focus,
+.formGroup input[type="search"]:focus,
+.formGroup textarea:focus {
+    border-color: var(--color-primary);
+}
+
+.formGroup textarea {
+    min-height: 76px;
+    resize: vertical;
+}
+
+.memberCount {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 12px;
+}
+
+/* Developer selection list. */
+.developerList {
+    display: flex;
+    flex-direction: column;
+    max-height: 190px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+}
+
+.developerOption {
+    display: grid;
+    grid-template-columns: 18px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--color-border);
+    cursor: pointer;
+}
+
+.developerOption:last-child {
+    border-bottom: none;
+}
+
+.developerOption:hover {
+    background: var(--color-background);
+}
+
+.developerOption input {
+    accent-color: var(--color-primary);
+}
+
+.developerOption span {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.developerOption small {
+    color: var(--color-text-muted);
+    font-size: 11px;
+}
+
+.emptyState {
+    margin: 0;
+    padding: 18px;
+    color: var(--color-text-muted);
+    font-size: 13px;
+    text-align: center;
+}
+
+/* Validation feedback. */
+.errorMessage {
+    margin: 0;
+    color: var(--color-danger, #dc2626);
+    font-size: 12px;
+}
+
+/* Modal footer actions. */
+.formActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin: 0 -28px -26px;
+    padding: 18px 28px;
+    border-top: 1px solid var(--color-border);
+}
+
+.cancelButton,
+.saveButton {
+    min-height: 40px;
+    padding: 0 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cancelButton {
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.saveButton {
+    border: 1px solid var(--color-primary);
+    background: var(--color-primary);
+    color: white;
+}
+
+.cancelButton:hover {
+    background: var(--color-background);
+}
+
+.saveButton:hover {
+    opacity: 0.9;
+}
+
+/* Keep the form comfortable on smaller screens. */
+@media (max-width: 600px) {
+    .pageHeader {
+        padding: 22px 20px;
+    }
+
+    .form {
+        padding: 22px 20px;
+    }
+
+    .formActions {
+        margin: 0 -20px -22px;
+        padding: 16px 20px;
+    }
+}
+
+/* Team members heading. */
+.memberSectionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.memberSectionHeader label {
+    font-size: 13px;
+    font-weight: 600;
+}
+/* Add Members button in the Team Members section. */
+.addMembersButton {
+    min-height: 38px;
+    padding: 0 16px;
+    border: 1px solid var(--color-primary);
+    border-radius: 8px;
+    background: var(--color-primary);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.addMembersButton:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+/* Developer search field. */
+.searchWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+
+.searchIcon {
+    position: absolute;
+    left: 15px;
+    width: 16px;
+    height: 16px;
+    font-size: 0;
+    pointer-events: none;
+}
+
+.searchIcon::before {
+    content: "";
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 9px;
+    height: 9px;
+    border: 2px solid var(--color-text-muted);
+    border-radius: 50%;
+}
+
+.searchIcon::after {
+    content: "";
+    position: absolute;
+    top: 11px;
+    left: 11px;
+    width: 6px;
+    height: 2px;
+    background: var(--color-text-muted);
+    border-radius: 2px;
+    transform: rotate(45deg);
+}
+
+
+.formGroup input[type="search"].memberSearch {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px 12px 42px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.formGroup input[type="search"].memberSearch:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+/* Search results displayed below the search field. */
+.searchResults {
+    display: flex;
+    flex-direction: column;
+    max-height: 190px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-surface);
+}
+
+.developerResult {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.developerResult:last-child {
+    border-bottom: none;
+}
+
+.developerResult:hover {
+    background: var(--color-background);
+}
+
+.developerInfo,
+.memberInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.developerInfo strong,
+.memberInfo strong {
+    color: var(--color-text);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.developerInfo small,
+.memberInfo small {
+    color: var(--color-text-muted);
+    font-size: 11px;
+}
+
+.addButton {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 7px;
+    background: var(--color-primary);
+    color: white;
+    font-size: 21px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.addButton:hover {
+    opacity: 0.85;
+    transform: scale(1.05);
+}
+
+.noResults {
+    margin: 0;
+    padding: 16px;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    text-align: center;
+}
+
+/* Selected team members. */
+.selectedMembers {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.memberChip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 13px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-background);
+}
+
+.removeButton {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.removeButton:hover {
+    border-color: var(--color-danger, #dc2626);
+    background: var(--color-danger, #dc2626);
+    color: white;
+}
+/* Edit Team's feature-specific close button. */
+.editTeamCloseButton {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 20;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 34px;
+    height: 34px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: transparent;
+    color: var(--color-text-muted);
+
+    font-size: 25px;
+    cursor: pointer;
+
+    transition: background 0.2s ease;
+}
+
+.editTeamCloseButton:hover {
+    background: var(--color-surface-hover);
+}
+
+.editTeamCloseButton:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.25);
+    outline-offset: 2px;
+}

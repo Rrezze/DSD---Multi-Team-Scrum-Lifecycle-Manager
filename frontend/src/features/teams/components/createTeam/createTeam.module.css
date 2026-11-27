@@ -1,0 +1,432 @@
+
+/**
+ * Create Team Modal Styles
+ *
+ * Uses the same visual structure as the Create Ticket modal:
+ * padded header, padded form body and full-width footer.
+ *
+ * All styles in this file belong exclusively to Create Team.
+ */
+
+/* Main modal content */
+
+.createTeamPage {
+    width: 100%;
+    min-width: 0;
+    color: var(--color-text-primary);
+    box-sizing: border-box;
+}
+
+/* Modal header */
+
+.pageHeader {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.pageHeader::before {
+    content: "TEAMS";
+    color: var(--color-primary);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.pageHeader h1 {
+    margin: 8px 0 5px;
+    color: var(--color-text-heading);
+    font-size: 23px;
+    font-weight: 700;
+}
+
+.pageHeader p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.pageHeader strong {
+    color: var(--color-text-primary);
+}
+
+/* Form body */
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding: 26px 28px;
+    box-sizing: border-box;
+}
+
+/* Form fields */
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.formGroup label {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.formGroup label span {
+    color: var(--color-danger);
+}
+
+.formGroup input,
+.formGroup textarea {
+    width: 100%;
+    min-width: 0;
+    padding: 11px 12px;
+    border: 1px solid var(--color-border-control);
+    border-radius: 8px;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    font-family: inherit;
+    font-size: 13px;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.formGroup input {
+    height: 43px;
+}
+
+.formGroup textarea {
+    min-height: 76px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.formGroup input::placeholder,
+.formGroup textarea::placeholder {
+    color: var(--color-text-subtle);
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+/* Developer search */
+
+.developerSelect {
+    position: relative;
+    width: 100%;
+}
+
+.searchWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.searchWrapper input {
+    padding-left: 42px;
+    padding-right: 44px;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 13px;
+    z-index: 1;
+    width: 19px;
+    height: 19px;
+    color: var(--color-text-secondary);
+    pointer-events: none;
+}
+
+.dropdownButton {
+    position: absolute;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+}
+
+.dropdownButton:hover {
+    background: var(--color-surface-hover);
+}
+
+.dropdownButton svg {
+    width: 19px;
+    height: 19px;
+}
+
+.dropdownList {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    z-index: 30;
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 5px;
+    border: 1px solid var(--color-border);
+    border-radius: 9px;
+    background: var(--color-surface);
+    box-shadow: 0 6px 18px rgb(0 0 0 / 10%);
+}
+
+.developerOption {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 11px;
+    padding: 10px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
+
+.developerOption:hover {
+    background: var(--color-surface-hover);
+}
+
+.optionAvatar,
+.chipAvatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-primary-surface);
+    color: var(--color-primary);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.optionInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.optionInfo strong {
+    color: var(--color-text-primary);
+    font-size: 13px;
+}
+
+.optionInfo small {
+    color: var(--color-text-secondary);
+    font-size: 11px;
+}
+
+.noResults {
+    padding: 12px;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    text-align: center;
+}
+
+/* Selected members */
+
+.selectedMembers {
+    padding: 13px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 9px;
+    background: var(--color-surface);
+}
+
+.selectedHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 11px;
+}
+
+.selectedHeader h2 {
+    margin: 0;
+    color: var(--color-text-primary);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.clearAllButton {
+    padding: 4px 0;
+    border: none;
+    background: transparent;
+    color: var(--color-primary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.clearAllButton:hover {
+    color: var(--color-danger);
+}
+
+.memberChips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+.memberChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 4px 9px 4px 5px;
+    border: 1px solid var(--color-border-control);
+    border-radius: 24px;
+    background: var(--color-surface);
+}
+
+.memberChip .chipAvatar {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--color-border-control);
+}
+
+.chipName {
+    color: var(--color-text-primary);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.memberChip button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 21px;
+    height: 21px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: 19px;
+    cursor: pointer;
+}
+
+.memberChip button:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-danger);
+}
+
+.noSelectedMembers {
+    margin: 0;
+    padding: 7px 0;
+    color: var(--color-text-muted);
+    font-size: 13px;
+}
+
+/* Validation feedback */
+
+.errorMessage {
+    margin: -5px 0 0;
+    color: var(--color-danger);
+    font-size: 12px;
+}
+
+/* Full-width modal footer */
+
+.formActions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    /* Extend the footer border to the modal edges. */
+    margin: 0 -28px -26px;
+    padding: 18px 28px;
+
+    border-top: 1px solid var(--color-border-subtle);
+    background: var(--color-surface);
+    box-sizing: border-box;
+}
+
+.cancelButton,
+.createButton {
+    min-width: 105px;
+    min-height: 42px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cancelButton {
+    border: 1px solid var(--color-border-control);
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+}
+
+.cancelButton:hover {
+    background: var(--color-surface-hover);
+}
+
+.createButton {
+    border: 1px solid var(--color-primary);
+    background: var(--color-primary);
+    color: white;
+}
+
+.createButton:hover {
+    background: var(--color-primary-hover);
+}
+
+/* Keyboard accessibility */
+
+.dropdownButton:focus-visible,
+.developerOption:focus-visible,
+.clearAllButton:focus-visible,
+.memberChip button:focus-visible,
+.cancelButton:focus-visible,
+.createButton:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+}
+
+/* Responsive layout */
+
+@media (max-width: 600px) {
+    .pageHeader {
+        padding: 20px;
+    }
+
+    .form {
+        gap: 18px;
+        padding: 20px;
+    }
+
+    .formActions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        margin: 0 -20px -20px;
+        padding: 16px 20px;
+    }
+
+    .cancelButton,
+    .createButton {
+        width: 100%;
+    }
+}

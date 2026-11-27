@@ -26,7 +26,7 @@ class TeamListApiTests(APITestCase):
         self.assertEqual([t["name"] for t in response.data], ["Old team", "Team A", "Team B"])
         self.assertEqual(
             set(response.data[0].keys()),
-            {"id", "name", "description", "is_active", "base_capacity_points"},
+            {"id", "name", "description", "is_active"},
         )
         self.assertFalse(response.data[0]["is_active"])
         self.assertEqual(response.data[2]["description"], "Backend")
@@ -49,21 +49,19 @@ class TeamCreateApiTests(APITestCase):
     def test_create_team(self):
         response = self.client.post(
             "/api/teams/",
-            {"name": "Team A", "description": "Backend", "base_capacity_points": 40},
+            {"name": "Team A", "description": "Backend"},
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         team = Team.objects.get(pk=response.data["id"])
         self.assertEqual(team.name, "Team A")
         self.assertEqual(team.description, "Backend")
-        self.assertEqual(team.base_capacity_points, 40)
         self.assertTrue(team.is_active)
 
     def test_only_name_is_required(self):
         response = self.client.post("/api/teams/", {"name": "Team A"}, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["description"], "")
-        self.assertIsNone(response.data["base_capacity_points"])
 
     def test_name_is_trimmed(self):
         response = self.client.post("/api/teams/", {"name": "  Team A  "}, format="json")
@@ -86,12 +84,6 @@ class TeamCreateApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("name", response.data)
 
-    def test_negative_capacity_is_rejected(self):
-        response = self.client.post(
-            "/api/teams/", {"name": "Team A", "base_capacity_points": -5}, format="json"
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("base_capacity_points", response.data)
 
     def test_is_active_cannot_be_set(self):
         response = self.client.post(
@@ -132,14 +124,13 @@ class TeamDetailApiTests(APITestCase):
         self.assertEqual(self.team.name, "Team Alpha")
         self.assertEqual(self.team.description, "Backend")  # unchanged
 
-    def test_edit_description_and_capacity(self):
+    def test_edit_description(self):
         response = self.client.patch(
-            self.url(), {"description": "QA", "base_capacity_points": 30}, format="json"
+            self.url(), {"description": "QA"}, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.team.refresh_from_db()
         self.assertEqual(self.team.description, "QA")
-        self.assertEqual(self.team.base_capacity_points, 30)
 
     def test_keeping_the_same_name_is_allowed(self):
         response = self.client.patch(self.url(), {"name": "team a"}, format="json")

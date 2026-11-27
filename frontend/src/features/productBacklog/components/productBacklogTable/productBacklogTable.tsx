@@ -27,22 +27,30 @@ import { reorderBacklogTickets } from "../../productBacklogApi";
 import Notification from "../../../../components/notification/notification";
 
 import styles from "./productBacklogTable.module.css";
+import type { ApiTeam } from "../../../teams/teamsTypes";
 
 interface ProductBacklogTableProps {
     tickets: BacklogTicket[];
     parentTickets: BacklogTicket[];
+    teams: ApiTeam[];
     onTicketClick: (ticket: BacklogTicket) => void;
 }
 
 interface SortableTicketRowProps {
     ticket: BacklogTicket;
     parentTickets: BacklogTicket[];
+    teams: ApiTeam[];
     onTicketClick: (ticket: BacklogTicket) => void;
 }
 /**
  * A single sortable ticket row.
  */
-function SortableTicketRow({ ticket, parentTickets, onTicketClick }: SortableTicketRowProps) {
+function SortableTicketRow({
+    ticket,
+    parentTickets,
+    teams,
+    onTicketClick,
+}: SortableTicketRowProps)  {
     const {
         attributes,
         listeners,
@@ -116,12 +124,20 @@ function SortableTicketRow({ ticket, parentTickets, onTicketClick }: SortableTic
         : "-"}
             </td>
 
-            {/* Assigned team */}
-            <td>
-                {ticket.teams.length > 0
-                    ? ticket.teams.join(", ")
-                    : "-"}
-            </td>
+            {/* Assigned team names */}
+        <td>
+        {ticket.teams.length > 0
+            ? ticket.teams
+                .map((teamId) => {
+                    const team = teams.find(
+                        (item) => item.id === teamId
+                    );
+
+                    return team ? team.name : teamId;
+                })
+                .join(", ")
+            : "-"}
+        </td>
 
             {/* Estimate points */}
             <td className={styles.pointsCell}>
@@ -141,6 +157,7 @@ function SortableTicketRow({ ticket, parentTickets, onTicketClick }: SortableTic
 export default function ProductBacklogTable({
     tickets,
     parentTickets,
+    teams,
     onTicketClick
 }: ProductBacklogTableProps) {
     const [orderedTickets, setOrderedTickets] =
@@ -298,6 +315,7 @@ export default function ProductBacklogTable({
                                     key={ticket.id}
                                     ticket={ticket}
                                     parentTickets={parentTickets}
+                                    teams={teams}
                                     onTicketClick={onTicketClick}
                                 />
                             ))}

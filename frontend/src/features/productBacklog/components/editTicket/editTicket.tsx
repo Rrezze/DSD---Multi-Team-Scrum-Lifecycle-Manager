@@ -4,16 +4,15 @@ import { useEffect, useState, type FormEvent } from "react";
 import Button from "../../../../components/button/Button";
 import Modal from "../../../../components/modal/Modal";
 
-import { getTeams, updateTicket } from "../../productBacklogApi";
-
+import { updateTicket } from "../../productBacklogApi";
+import { getTeams } from "../../../teams/teamsApi";
 import type {
     BacklogTicket,
     UpdateTicketPayload,
     TicketFormErrors,
     TicketType,
-    Team,
 } from "../../productBacklogTypes";
-
+import type { ApiTeam } from "../../../teams/teamsTypes";
 import styles from "./editTicket.module.css";
 
 interface EditTicketProps {
@@ -40,7 +39,7 @@ export default function EditTicket({
     const [errors, setErrors] = useState<TicketFormErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [apiError, setApiError] = useState("");
-    const [availableTeams, setAvailableTeams] = useState<Team[]>([]);
+    const [availableTeams, setAvailableTeams] = useState<ApiTeam[]>([]);
     const [selectedTeamIds, setSelectedTeamIds] = useState<number[]>([]);
     const [isLoadingTeams, setIsLoadingTeams] = useState(false);
     const [teamsError, setTeamsError] = useState("");
