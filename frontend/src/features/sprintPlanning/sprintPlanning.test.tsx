@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { describe, expect, it } from "vitest";
 import { http, HttpResponse } from "msw";
@@ -227,8 +227,10 @@ describe("Sprint Planning", () => {
         expect(confirmation).toHaveTextContent("The sprint will be removed for all teams.");
         fireEvent.click(within(confirmation).getByRole("button", { name: "Delete sprint" }));
 
-        await screen.findByRole("option", { name: "Sprint 5" });
-        expect(screen.queryByRole("option", { name: "Sprint 8 Updated" })).not.toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByRole("combobox", { name: "Select sprint" })).toHaveValue("5");
+            expect(screen.queryByRole("option", { name: "Sprint 8 Updated" })).not.toBeInTheDocument();
+        });
         expect(within(backlog).getByText("Implement login")).toBeInTheDocument();
         expect(await screen.findByRole("status")).toHaveTextContent("Sprint deleted successfully.");
     });
