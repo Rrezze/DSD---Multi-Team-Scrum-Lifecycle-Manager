@@ -1,11 +1,12 @@
 import type { DragEvent } from "react";
 
-import type { BacklogTicket, Team } from "../../../productBacklog/productBacklogTypes";
+import type { BacklogTicket } from "../../../productBacklog/productBacklogTypes";
+import type { PlanningTeam } from "../../sprintPlanningTypes";
 import styles from "./sprintTickets.module.css";
 
 interface SprintTicketsProps {
     ticket: BacklogTicket;
-    team?: Team;
+    team?: PlanningTeam;
     variant?: "sprint" | "backlog";
     onRemove?: () => void;
     onAdd?: () => void;

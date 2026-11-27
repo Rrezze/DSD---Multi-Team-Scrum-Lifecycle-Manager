@@ -1,6 +1,6 @@
 import { useState, type DragEvent } from "react";
 
-import type { Team } from "../../../productBacklog/productBacklogTypes";
+import type { PlanningTeam } from "../../sprintPlanningTypes";
 import type { PlannedTicket } from "../../sprintPlanningTypes";
 import { SprintTickets } from "../sprintTickets/sprintTickets";
 import styles from "./sprintTasks.module.css";
@@ -9,7 +9,7 @@ interface SprintTasksProps {
     sprintName: string;
     teamName: string;
     tickets: PlannedTicket[];
-    teams: Team[];
+    teams: PlanningTeam[];
     isLoading: boolean;
     onRemoveTicket: (ticketId: number) => void;
     onDropTicket: (ticketId: number) => boolean;

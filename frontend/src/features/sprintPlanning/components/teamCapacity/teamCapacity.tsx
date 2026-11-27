@@ -1,10 +1,9 @@
-import type { Team } from "../../../productBacklog/productBacklogTypes";
-import type { PlannedTicket } from "../../sprintPlanningTypes";
+import type { PlannedTicket, PlanningTeam } from "../../sprintPlanningTypes";
 import { plannedPoints } from "../../sprintPlanningUtils";
 import styles from "./teamCapacity.module.css";
 
 interface TeamCapacityProps {
-    teams: Team[];
+    teams: PlanningTeam[];
     plannedTickets: PlannedTicket[];
     selectedTeamId: number | null;
     usingSampleTeams: boolean;
@@ -34,7 +33,7 @@ export function TeamCapacity({
             <div className={styles.capacityList}>
                 {teams.length ? teams.map((team) => {
                     const points = plannedPoints(plannedTickets, team.id);
-                    const capacity = team.base_capacity_points ?? null;
+                    const capacity = team.capacity_points;
                     const percent = capacity
                         ? Math.min((points / capacity) * 100, 100)
                         : 0;

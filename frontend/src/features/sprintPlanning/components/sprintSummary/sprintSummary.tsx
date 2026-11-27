@@ -1,11 +1,14 @@
-import type { Team } from "../../../productBacklog/productBacklogTypes";
-import type { SprintDraft } from "../../sprintPlanningTypes";
-import { formatSprintDate } from "../../sprintPlanningUtils";
+import type { PlanningTeam, SprintDraft } from "../../sprintPlanningTypes";
+import {
+    formatSprintDate,
+    getSprintDurationDays,
+    getSprintStatus,
+} from "../../sprintPlanningUtils";
 import styles from "./sprintSummary.module.css";
 
 interface SprintSummaryProps {
     sprint: SprintDraft;
-    teams: Team[];
+    teams: PlanningTeam[];
     selectedTeamId: number | null;
     selectedTeamPoints: number;
     teamCapacity: number | null;
@@ -23,6 +26,11 @@ export function SprintSummary({
     const workloadPercent = teamCapacity
         ? Math.min((selectedTeamPoints / teamCapacity) * 100, 100)
         : 0;
+    const sprintDuration = getSprintDurationDays(sprint);
+    const durationLabel = sprintDuration % 7 === 0
+        ? `${sprintDuration / 7} ${sprintDuration / 7 === 1 ? "week" : "weeks"}`
+        : `${sprintDuration} days`;
+    const sprintStatus = getSprintStatus(sprint);
 
     return (
         <section className={styles.summary} aria-label="Sprint details">
@@ -32,7 +40,7 @@ export function SprintSummary({
                     <strong>
                         {formatSprintDate(sprint.startDate)} – {formatSprintDate(sprint.endDate)}
                     </strong>
-                    <span>2 weeks · Planning</span>
+                    <span>{durationLabel} · {sprintStatus}</span>
                 </div>
             </div>
             <div className={styles.workload}>

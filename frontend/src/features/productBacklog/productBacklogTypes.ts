@@ -53,13 +53,6 @@ export interface BacklogTicket {
     created_at: string;
     updated_at: string;
 }
-export interface Team {
-    id: number;
-    name: string;
-    description: string;
-    is_active: boolean;
-    base_capacity_points: number | null;
-}
 /**
  * Data that can be updated when editing an existing ticket.
  */

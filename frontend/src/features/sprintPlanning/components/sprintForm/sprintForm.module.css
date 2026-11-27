@@ -1,0 +1,116 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 30px;
+}
+
+.header {
+    padding-right: 36px;
+}
+
+.header h2 {
+    margin: 0;
+    color: var(--color-text-heading);
+    font-size: 24px;
+}
+
+.header p {
+    margin: 6px 0 0;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+.header .eyebrow {
+    margin: 0 0 8px;
+    color: var(--color-primary);
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: 0.1em;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    color: var(--color-text-heading);
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.field input,
+.field select,
+.field textarea {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border-control);
+    border-radius: 8px;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    font: inherit;
+    font-weight: 400;
+}
+
+.field textarea {
+    resize: vertical;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+    border-color: var(--color-primary);
+    outline: 2px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.field small {
+    color: var(--color-text-secondary);
+    font-size: 11px;
+    font-weight: 400;
+}
+
+.required {
+    color: var(--color-danger);
+}
+
+.dateFields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.notice {
+    padding: 11px 12px;
+    margin: 0;
+    border-radius: 8px;
+    background: var(--color-surface-hover);
+    color: var(--color-text-secondary);
+    font-size: 12px;
+}
+
+.error {
+    padding: 10px 12px;
+    margin: 0;
+    border: 1px solid var(--color-danger-surface);
+    border-radius: 8px;
+    background: #fffafa;
+    color: var(--color-danger);
+    font-size: 12px;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 4px;
+}
+
+@media (max-width: 520px) {
+    .form {
+        padding: 24px 18px;
+    }
+
+    .dateFields {
+        grid-template-columns: 1fr;
+    }
+}

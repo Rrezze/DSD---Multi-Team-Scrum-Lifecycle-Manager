@@ -1,12 +1,13 @@
 import type { DragEvent } from "react";
 
-import type { BacklogTicket, Team } from "../../../productBacklog/productBacklogTypes";
+import type { BacklogTicket } from "../../../productBacklog/productBacklogTypes";
+import type { PlanningTeam } from "../../sprintPlanningTypes";
 import { SprintTickets } from "../sprintTickets/sprintTickets";
 import styles from "./backlogItems.module.css";
 
 interface BacklogItemsProps {
     tickets: BacklogTicket[];
-    teams: Team[];
+    teams: PlanningTeam[];
     search: string;
     isLoading: boolean;
     onSearchChange: (search: string) => void;

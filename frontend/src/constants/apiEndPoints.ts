@@ -2,6 +2,8 @@ const API_ENDPOINTS = {
     TICKETS: "/api/tickets/",
     TICKETS_REORDER: "/api/tickets/reorder/",
     TICKET_DETAIL: (id: number) => `/api/tickets/${id}/`,
+    SPRINTS: "/api/sprints/",
+    SPRINT_DETAIL: (sprintId: number) => `/api/sprints/${sprintId}/`,
     TEAMS: "/api/teams/",
     USERS: "/api/users/",
     USER_DETAIL: (userId: number) => `/api/users/${userId}/`,
