@@ -2,9 +2,10 @@
 /**
  * Create Team Modal
  *
- * Allows the Engineering Manager to create a team and assign
+ * Allows the Engineering Manager to create a team and select
  * developers who are not currently assigned to another team.
  *
+ * The parent component handles API requests and persistence.
  * The shared Modal component handles the dialog overlay and closing.
  */
 
@@ -22,7 +23,13 @@ interface CreateTeamProps {
     availableDevelopers: User[];
     existingTeams: Team[];
     onClose: () => void;
-    onCreate: (team: Team) => void;
+
+    // Sends validated form data to the parent for backend creation.
+    onCreate: (teamData: {
+        name: string;
+        description: string;
+        members: User[];
+    }) => Promise<void>;
 }
 
 export default function CreateTeam({
@@ -38,6 +45,7 @@ export default function CreateTeam({
     const [selectedMembers, setSelectedMembers] = useState<User[]>([]);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [error, setError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Filter developers by name, email or role.
     const filteredDevelopers = availableDevelopers.filter((user) => {
@@ -86,9 +94,16 @@ export default function CreateTeam({
             .join("")
             .toUpperCase();
 
-    // Validate the form and send the new team to the Teams page.
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    /**
+     * Validate the form and send the team details to the parent.
+     *
+     * The parent is responsible for creating the team through
+     * the backend API and assigning the selected developers.
+     */
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
+        if (isSubmitting) return;
 
         const trimmedName = teamName.trim();
 
@@ -99,7 +114,8 @@ export default function CreateTeam({
 
         // Team names must be unique, regardless of letter casing.
         const duplicateName = existingTeams.some(
-            (team) => team.name.toLowerCase() === trimmedName.toLowerCase()
+            (team) =>
+                team.name.toLowerCase() === trimmedName.toLowerCase()
         );
 
         if (duplicateName) {
@@ -112,21 +128,25 @@ export default function CreateTeam({
             return;
         }
 
-        // Generate a new ID based on the existing mock teams.
-        const nextTeamId =
-            Math.max(0, ...existingTeams.map((team) => team.id)) + 1;
+        try {
+            setIsSubmitting(true);
+            setError("");
 
-        const newTeam: Team = {
-            id: nextTeamId,
-            name: trimmedName,
-            description: description.trim(),
-            memberCount: selectedMembers.length,
-            members: selectedMembers.map((user) => ({ user })),
-            capacityPoints: 0,
-        };
-
-        // Let the Teams page update its state and close this modal.
-        onCreate(newTeam);
+            // Send form data to the parent for backend persistence.
+            await onCreate({
+                name: trimmedName,
+                description: description.trim(),
+                members: selectedMembers,
+            });
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to create team. Please try again."
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -159,6 +179,7 @@ export default function CreateTeam({
                             }}
                             maxLength={80}
                             required
+                            disabled={isSubmitting}
                         />
                     </div>
 
@@ -177,6 +198,7 @@ export default function CreateTeam({
                             }
                             rows={3}
                             maxLength={300}
+                            disabled={isSubmitting}
                         />
                     </div>
 
@@ -211,6 +233,7 @@ export default function CreateTeam({
                                         setDropdownOpen(true);
                                     }}
                                     autoComplete="off"
+                                    disabled={isSubmitting}
                                 />
 
                                 <button
@@ -221,6 +244,7 @@ export default function CreateTeam({
                                     }
                                     aria-label="Toggle developer list"
                                     aria-expanded={dropdownOpen}
+                                    disabled={isSubmitting}
                                 >
                                     <svg
                                         viewBox="0 0 24 24"
@@ -265,6 +289,7 @@ export default function CreateTeam({
                                                     onClick={() =>
                                                         handleAddMember(user)
                                                     }
+                                                    disabled={isSubmitting}
                                                 >
                                                     <span className={styles.optionAvatar}>
                                                         {getInitials(user.name)}
@@ -298,6 +323,7 @@ export default function CreateTeam({
                                     type="button"
                                     onClick={handleClearAll}
                                     className={styles.clearAllButton}
+                                    disabled={isSubmitting}
                                 >
                                     Clear All
                                 </button>
@@ -325,6 +351,7 @@ export default function CreateTeam({
                                                 handleRemoveMember(user.id)
                                             }
                                             aria-label={`Remove ${user.name}`}
+                                            disabled={isSubmitting}
                                         >
                                             ×
                                         </button>
@@ -338,7 +365,7 @@ export default function CreateTeam({
                         )}
                     </section>
 
-                    {/* Validation feedback */}
+                    {/* Validation and API error feedback */}
                     {error && (
                         <p className={styles.errorMessage} role="alert">
                             {error}
@@ -351,6 +378,7 @@ export default function CreateTeam({
                             type="button"
                             className={styles.cancelButton}
                             onClick={onClose}
+                            disabled={isSubmitting}
                         >
                             Cancel
                         </button>
@@ -358,8 +386,9 @@ export default function CreateTeam({
                         <button
                             type="submit"
                             className={styles.createButton}
+                            disabled={isSubmitting}
                         >
-                            Create Team
+                            {isSubmitting ? "Creating..." : "Create Team"}
                         </button>
                     </div>
                 </form>

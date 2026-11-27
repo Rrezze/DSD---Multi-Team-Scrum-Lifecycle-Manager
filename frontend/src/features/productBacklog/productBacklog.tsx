@@ -27,16 +27,17 @@ import EditTicket from "./components/editTicket/editTicket";
 import ViewTicket from "./components/viewTicket/viewTicket";
 import ProductBacklogTable from "./components/productBacklogTable/productBacklogTable";
 
-import { getBacklogTickets, getTeams } from "./productBacklogApi";
-
-import type { BacklogTicket, Team} from "./productBacklogTypes";
+import { getBacklogTickets } from "./productBacklogApi";
+import { getTeams } from "../teams/teamsApi";
+import type { BacklogTicket } from "./productBacklogTypes";
+import type { ApiTeam } from "../teams/teamsTypes";
 
 export default function ProductBacklog() {
     const [tickets, setTickets] = useState<BacklogTicket[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedType, setSelectedType] = useState("");
     const [selectedStatus, setSelectedStatus] = useState("");
-    const [teams, setTeams] = useState<Team[]>([]);
+    const [teams, setTeams] = useState<ApiTeam[]>([]);
     const [selectedTeam, setSelectedTeam] = useState("");
     const [isLoadingTeams, setIsLoadingTeams] = useState(true);
     const [teamFetchError, setTeamFetchError] = useState("");
@@ -325,6 +326,7 @@ export default function ProductBacklog() {
                 <ProductBacklogTable
                     tickets={tickets}
                     parentTickets={allTickets}
+                    teams={teams}
                     onTicketClick={handleTicketClick}
                 />
             ) : null}

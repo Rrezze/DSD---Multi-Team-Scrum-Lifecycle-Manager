@@ -224,44 +224,55 @@ export default function TeamDetails({
                         <div className={styles.tableHeader}>
                             <span>MEMBER</span>
                             <span>ROLE</span>
+                            <span>CAPACITY</span>
+
                             <span />
                         </div>
 
-                        {team.members.map((member) => (
-                            <div
-                                className={styles.memberRow}
-                                key={member.user.id}
-                            >
-                                <div className={styles.memberIdentity}>
-                                    <div className={styles.memberAvatar}>
-                                        {getMemberInitials(member.user.name)}
-                                    </div>
 
-                                    <span className={styles.memberName}>
-                                        {member.user.name}
-                                    </span>
+                    {team.members.map((member) => (
+                        <div
+                            className={styles.memberRow}
+                            key={member.user.id}
+                        >
+                            {/* Member name and avatar */}
+                            <div className={styles.memberIdentity}>
+                                <div className={styles.memberAvatar}>
+                                    {getMemberInitials(member.user.name)}
                                 </div>
 
-                                <span className={styles.memberRole}>
-                                    {member.user.role}
+                                <span className={styles.memberName}>
+                                    {member.user.name}
                                 </span>
-
-                                <button
-                                    type="button"
-                                    className={styles.removeMemberButton}
-                                    onClick={() =>
-                                        onRemoveMember(
-                                            team.id,
-                                            member.user.id
-                                        )
-                                    }
-                                    aria-label={`Remove ${member.user.name} from ${team.name}`}
-                                    title="Remove member"
-                                >
-                                    ×
-                                </button>
                             </div>
-                        ))}
+
+                            {/* Member role */}
+                            <span className={styles.memberRole}>
+                                {member.user.role}
+                            </span>
+
+                            {/* Individual capacity points */}
+                            <span className={styles.memberCapacity}>
+                                {member.capacityPoints !== undefined
+                                    ? `${member.capacityPoints} PTS`
+                                    : "—"}
+                            </span>
+
+                            {/* Remove member action */}
+                            <button
+                                type="button"
+                                className={styles.removeMemberButton}
+                                onClick={() =>
+                                    onRemoveMember(team.id, member.user.id)
+                                }
+                                aria-label={`Remove ${member.user.name} from ${team.name}`}
+                                title="Remove member"
+                            >
+                                ×
+                            </button>
+                        </div>
+                    ))}
+
                     </div>
                 ) : (
                     <p className={styles.emptyMembers}>

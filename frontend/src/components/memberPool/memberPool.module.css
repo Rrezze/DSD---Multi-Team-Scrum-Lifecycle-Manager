@@ -82,6 +82,15 @@
     border-color: var(--color-primary);
     box-shadow: 0 0 0 2px var(--color-primary-surface);
 }
+/* Hide the browser's built-in clear button.
+   We use our own custom clear button instead. */
+.searchInput::-webkit-search-cancel-button,
+.searchInput::-webkit-search-decoration,
+.searchInput::-webkit-search-results-button,
+.searchInput::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+}
 
 .clearSearchButton {
     position: absolute;

@@ -29,6 +29,24 @@ export interface Team {
     // Actual member details available for this team.
     members: TeamMember[];
 
-    // Total team capacity in story points.
+    // Total team capacity calculated by the backend.
     capacityPoints?: number;
+}
+
+/**
+ * Represents the Team data returned by the backend API.
+ */
+export interface ApiTeam {
+    id: number;
+    name: string;
+    description: string;
+    is_active: boolean;
+}
+
+/**
+ * Data required to create a team.
+ */
+export interface CreateTeamPayload {
+    name: string;
+    description?: string;
 }
