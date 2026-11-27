@@ -1,0 +1,98 @@
+.panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    padding: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 13px;
+    background: var(--color-surface);
+    box-shadow: 0 2px 6px rgb(15 23 42 / 4%);
+    overflow: hidden;
+}
+
+.panelHeading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex: 0 0 auto;
+    margin-bottom: 13px;
+}
+
+.panelHeading h2 {
+    margin: 0;
+    color: var(--color-text-heading);
+    font-size: 16px;
+    letter-spacing: -0.02em;
+}
+
+.panelHeading p {
+    margin: 4px 0 0;
+    color: var(--color-text-muted);
+    font-size: 11px;
+}
+
+.countBadge {
+    flex: 0 0 auto;
+    padding: 4px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    color: var(--color-text-secondary);
+    font-size: 10px;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.ticketList {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: 7px;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+    overscroll-behavior: contain;
+}
+
+.dropHint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 76px;
+    margin-top: 9px;
+    padding: 9px 14px;
+    border: 1px dashed var(--color-border-control);
+    border-radius: 10px;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    font-weight: 550;
+    text-align: center;
+}
+
+.emptyDropHint {
+    flex-direction: column;
+    background: var(--color-surface-subtle);
+}
+
+.dropActive {
+    border-color: var(--color-primary);
+    border-style: solid;
+    background: var(--color-primary-surface);
+    color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgb(37 99 235 / 12%);
+}
+
+.dropHint > span {
+    color: var(--color-primary);
+    font-size: 19px;
+}
+
+.loadingState {
+    padding: 16px 8px;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    text-align: center;
+}

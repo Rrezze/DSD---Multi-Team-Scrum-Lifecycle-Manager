@@ -1,0 +1,161 @@
+.ticketCard {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    padding: 9px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-surface);
+    cursor: grab;
+}
+
+.ticketCard:active {
+    cursor: grabbing;
+}
+
+.backlogTicket {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 7px;
+    padding: 10px;
+}
+
+.dragGrip {
+    flex: 0 0 auto;
+    color: var(--color-text-subtle);
+    font-size: 16px;
+    line-height: 1;
+}
+
+.ticketContent {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.ticketTitleRow {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    gap: 7px;
+}
+
+.ticketTitleRow h3 {
+    overflow: hidden;
+    margin: 0;
+    color: var(--color-text-heading);
+    font-size: 12px;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.backlogTicket .ticketTitleRow {
+    flex-wrap: wrap;
+}
+
+.backlogTicket .ticketTitleRow h3 {
+    flex: 1 1 100%;
+    order: 2;
+    white-space: normal;
+}
+
+.backlogTicket .ticketTitleRow .typeBadge {
+    order: 1;
+}
+
+.typeBadge {
+    flex: 0 0 auto;
+    padding: 3px 6px;
+    border-radius: 5px;
+    font-size: 8px;
+    font-weight: 750;
+}
+
+.epic {
+    background: var(--color-ticket-epic-background);
+    color: var(--color-ticket-epic-text);
+}
+
+.story {
+    background: var(--color-ticket-story-background);
+    color: var(--color-ticket-story-text);
+}
+
+.task {
+    background: var(--color-ticket-task-background);
+    color: var(--color-ticket-task-text);
+}
+
+.bug {
+    background: var(--color-ticket-bug-background);
+    color: var(--color-ticket-bug-text);
+}
+
+.ticketMeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 5px;
+    color: var(--color-text-muted);
+    font-size: 9px;
+}
+
+.statusBadge {
+    padding: 2px 6px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    color: var(--color-text-secondary);
+    font-size: 8px;
+    font-weight: 650;
+}
+
+.ticketPoints {
+    flex: 0 0 auto;
+    color: var(--color-text-secondary);
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.removeButton,
+.addButton {
+    flex: 0 0 auto;
+    border: 1px solid var(--color-border-control);
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font: inherit;
+}
+
+.removeButton {
+    width: 27px;
+    height: 27px;
+    border-radius: 7px;
+    font-size: 19px;
+    line-height: 1;
+}
+
+.removeButton:hover {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+}
+
+.addButton {
+    margin-left: auto;
+    padding: 5px 9px;
+    border-radius: 7px;
+    color: var(--color-text-heading);
+    font-size: 9px;
+    font-weight: 650;
+}
+
+.addButton:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.newlyAdded {
+    border-color: var(--color-primary);
+    background: var(--color-primary-surface);
+}

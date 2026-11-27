@@ -1,0 +1,125 @@
+.section {
+    flex: 0 0 auto;
+    margin: 16px 0 14px;
+}
+
+.sectionHeading,
+.capacityCardHeading {
+    display: flex;
+    align-items: center;
+}
+
+.sectionHeading {
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 11px;
+}
+
+.sectionHeading h2 {
+    margin: 0;
+    color: var(--color-text-heading);
+    font-size: 16px;
+    letter-spacing: -0.02em;
+}
+
+.sectionHeading p {
+    margin: 4px 0 0;
+    color: var(--color-text-muted);
+    font-size: 11px;
+}
+
+.legend {
+    color: var(--color-text-subtle);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+
+.capacityList {
+    display: flex;
+    gap: 9px;
+    overflow-x: auto;
+    padding-bottom: 3px;
+}
+
+.emptyState {
+    width: 100%;
+    padding: 8px 10px;
+    margin: 0;
+    border: 1px dashed var(--color-border-control);
+    border-radius: 9px;
+    background: var(--color-surface-subtle);
+    color: var(--color-text-muted);
+    font-size: 11px;
+}
+
+.capacityCard {
+    flex: 1 0 155px;
+    min-width: 0;
+    padding: 11px 12px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 11px;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.capacityCard:hover,
+.selectedCapacity {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgb(37 99 235 / 8%);
+}
+
+.capacityCardHeading {
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.capacityCardHeading strong {
+    overflow: hidden;
+    color: var(--color-text-heading);
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.capacityCardHeading > span {
+    color: var(--color-text-secondary);
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.capacityTrack {
+    display: block;
+    overflow: hidden;
+    height: 7px;
+    border-radius: 20px;
+    background: var(--color-surface-hover);
+}
+
+.capacityTrack > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--color-primary);
+    transition: width 180ms ease;
+}
+
+.capacityFoot {
+    display: block;
+    margin-top: 6px;
+    color: var(--color-text-muted);
+    font-size: 9px;
+}
+
+.overCapacity {
+    color: var(--color-danger) !important;
+}
+
+.overCapacityBar {
+    background: var(--color-danger) !important;
+}
