@@ -15,42 +15,13 @@ import {
 } from "../usersApi";
 import {
     UserRole,
-    type ApiAbsence,
-    type CreateAbsencePayload,
-    type CreateUserPayload,
 } from "../usersTypes";
-
-const user = {
-    id: 4,
-    username: "ada",
-    email: "ada@example.com",
-    first_name: "Ada",
-    last_name: "Lovelace",
-    role: UserRole.DEVELOPER,
-    is_active: true,
-};
-
-const createPayload: CreateUserPayload = {
-    username: user.username,
-    email: user.email,
-    first_name: user.first_name,
-    last_name: user.last_name,
-    role: user.role,
-};
-
-const absence: ApiAbsence = {
-    id: 8,
-    user: user.id,
-    start_date: "2026-12-01",
-    end_date: "2026-12-03",
-    reason: "Holiday",
-    hours: null,
-};
-
-const createAbsencePayload: CreateAbsencePayload = {
-    start_date: "2026-12-10",
-    end_date: "2026-12-11",
-};
+import {
+    createAbsencePayload,
+    createUserPayload as createPayload,
+    sampleAbsence as absence,
+    sampleUser as user,
+} from "./users.fixtures";
 
 describe("usersApi", () => {
     beforeEach(() => {

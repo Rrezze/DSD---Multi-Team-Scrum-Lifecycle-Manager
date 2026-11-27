@@ -1,35 +1,29 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { http, HttpResponse } from "msw";
 
-import API_ENDPOINTS from "../../constants/apiEndPoints";
-import { server } from "../../tests/mocks/server";
-import { backlogTickets } from "../productBacklog/tests/productBacklog.fixtures";
-import SprintPlanning from "./sprintPlanning";
-import { addCalendarDays, formatSprintDate, getTodayDateInputValue } from "./sprintPlanningUtils";
-import dropStyles from "./components/sprintTasks/sprintTasks.module.css";
-import ticketStyles from "./components/sprintTickets/sprintTickets.module.css";
+import API_ENDPOINTS from "../../../constants/apiEndPoints";
+import { server } from "../../../tests/mocks/server";
+import { capacityFixtures, sprintFiveFixture, sprintFixtures, teamFixtures } from "./sprintPlanning.fixtures";
+import { createSprintPlanningHandlers } from "./sprintPlanning.handlers";
+import SprintPlanning from "../sprintPlanning";
+import { addCalendarDays, formatSprintDate, getTodayDateInputValue } from "../sprintPlanningUtils";
+import dropStyles from "../components/sprintTasks/sprintTasks.module.css";
+import ticketStyles from "../components/sprintTickets/sprintTickets.module.css";
 
 describe("Sprint Planning", () => {
+    beforeEach(() => {
+        server.resetHandlers();
+        server.use(...createSprintPlanningHandlers());
+    });
+
     it("adds a backlog ticket when dropped into the sprint without a team selected", async () => {
-        server.use(
-            http.get(API_ENDPOINTS.SPRINTS, () => HttpResponse.json([
-                { id: 3, name: "Sprint 3", start_date: "2026-11-02", end_date: "2026-11-15", goal: "" },
-                { id: 4, name: "Sprint 4", start_date: "2026-11-16", end_date: "2026-11-29", goal: "" },
-                { id: 5, name: "Sprint 5", start_date: "2026-11-30", end_date: "2026-12-13", goal: "" },
-                { id: 6, name: "Sprint 6", start_date: "2026-12-14", end_date: "2026-12-27", goal: "" },
-                { id: 7, name: "Sprint 7", start_date: "2026-12-28", end_date: "2027-01-10", goal: "" },
-            ])),
-            http.get(API_ENDPOINTS.TICKETS, () => HttpResponse.json(backlogTickets)),
-            http.get(API_ENDPOINTS.TEAMS, () => HttpResponse.json([])),
-            http.get("/api/teams/capacity/", () => HttpResponse.json([]))
-        );
         render(<SprintPlanning />);
 
         const backlog = await screen.findByRole("region", { name: "Backlog items" });
         const sprintSelect = screen.getByRole("combobox", { name: "Select sprint" });
-        expect(within(sprintSelect).getAllByRole("option")).toHaveLength(5);
+        expect(within(sprintSelect).getAllByRole("option")).toHaveLength(sprintFixtures.length);
         fireEvent.change(sprintSelect, { target: { value: "6" } });
         expect(screen.getByText("14/12/2026 – 27/12/2026")).toBeInTheDocument();
         await screen.findByRole("button", { name: /Platform/ });
@@ -76,44 +70,11 @@ describe("Sprint Planning", () => {
 
     it("loads team capacity and moves backlog tickets into and out of the draft", async () => {
         server.use(
-            http.get(API_ENDPOINTS.SPRINTS, () => HttpResponse.json([
-                {
-                    id: 5,
-                    name: "Sprint 5",
-                    start_date: "2026-11-30",
-                    end_date: "2026-12-13",
-                    goal: "",
-                },
-            ])),
-            http.get(API_ENDPOINTS.TICKETS, () => HttpResponse.json(backlogTickets)),
-            http.get(API_ENDPOINTS.TEAMS, () => HttpResponse.json([
-                {
-                    id: 1,
-                    name: "Platform",
-                    description: "",
-                    is_active: true,
-                },
-                {
-                    id: 2,
-                    name: "Integration",
-                    description: "",
-                    is_active: true,
-                },
-            ])),
-            http.get("/api/teams/capacity/", () => HttpResponse.json([
-                {
-                    team: 1,
-                    team_name: "Platform",
-                    capacity_points: 30,
-                    members: [],
-                },
-                {
-                    team: 2,
-                    team_name: "Integration",
-                    capacity_points: 25,
-                    members: [],
-                },
-            ]))
+            ...createSprintPlanningHandlers({
+                sprints: [sprintFiveFixture],
+                teams: teamFixtures,
+                capacities: capacityFixtures,
+            })
         );
         render(<SprintPlanning />);
 
@@ -140,49 +101,22 @@ describe("Sprint Planning", () => {
         const existingEndDate = addCalendarDays(getTodayDateInputValue(), -1);
         const startDate = addCalendarDays(getTodayDateInputValue(), 5);
         const endDate = addCalendarDays(startDate, 13);
-        let sprints = [
-            {
-                id: 5,
-                name: "Sprint 5",
-                start_date: existingStartDate,
-                end_date: existingEndDate,
-                goal: "Ship the release",
-            },
-        ];
 
         server.use(
-            http.get(API_ENDPOINTS.SPRINTS, () => HttpResponse.json(sprints)),
-            http.get(API_ENDPOINTS.TICKETS, () => HttpResponse.json(backlogTickets)),
-            http.get(API_ENDPOINTS.TEAMS, () => HttpResponse.json([])),
-            http.get("/api/teams/capacity/", () => HttpResponse.json([])),
-            http.post(API_ENDPOINTS.SPRINTS, async ({ request }) => {
-                const payload = await request.json() as {
-                    name: string;
-                    start_date: string;
-                    end_date: string;
-                    goal: string;
-                };
-                const created = { id: 8, ...payload };
-                sprints = [...sprints, created];
-                return HttpResponse.json(created, { status: 201 });
-            }),
-            http.patch(API_ENDPOINTS.SPRINT_DETAIL(8), async ({ request }) => {
-                const payload = await request.json() as Partial<typeof sprints[number]>;
-                sprints = sprints.map((sprint) =>
-                    sprint.id === 8 ? { ...sprint, ...payload } : sprint
-                );
-                return HttpResponse.json(sprints.find((sprint) => sprint.id === 8));
-            }),
-            http.delete(API_ENDPOINTS.SPRINT_DETAIL(8), () => {
-                sprints = sprints.filter((sprint) => sprint.id !== 8);
-                return new HttpResponse(null, { status: 204 });
+            ...createSprintPlanningHandlers({
+                sprints: [{
+                    ...sprintFiveFixture,
+                    start_date: existingStartDate,
+                    end_date: existingEndDate,
+                    goal: "Ship the release",
+                }],
             })
         );
         render(<SprintPlanning />);
 
         fireEvent.click(await screen.findByRole("button", { name: "+ New sprint" }));
         fireEvent.change(screen.getByRole("textbox", { name: /Sprint name/i }), {
-            target: { value: "Sprint 8" },
+            target: { value: "Sprint 6" },
         });
         fireEvent.change(screen.getByLabelText(/^Start date/i), {
             target: { value: startDate },
@@ -192,8 +126,8 @@ describe("Sprint Planning", () => {
         });
         fireEvent.click(screen.getByRole("button", { name: "Create sprint" }));
 
-        expect(await screen.findByRole("option", { name: "Sprint 8" })).toBeInTheDocument();
-        expect(screen.getByRole("combobox", { name: "Select sprint" })).toHaveValue("8");
+        expect(await screen.findByRole("option", { name: "Sprint 6" })).toBeInTheDocument();
+        expect(screen.getByRole("combobox", { name: "Select sprint" })).toHaveValue("6");
         expect(screen.getByText("2 weeks · Planning")).toBeInTheDocument();
         expect(await screen.findByRole("status")).toHaveTextContent("Sprint created successfully.");
 
@@ -205,21 +139,21 @@ describe("Sprint Planning", () => {
         fireEvent.click(screen.getByRole("button", { name: "Sprint options" }));
         fireEvent.click(await screen.findByRole("button", { name: "Edit sprint" }));
         fireEvent.change(screen.getByRole("textbox", { name: /Sprint name/i }), {
-            target: { value: "Sprint 8 Updated" },
+            target: { value: "Sprint 6 Updated" },
         });
         fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-        expect(await screen.findByRole("option", { name: "Sprint 8 Updated" })).toBeInTheDocument();
+        expect(await screen.findByRole("option", { name: "Sprint 6 Updated" })).toBeInTheDocument();
         expect(await screen.findByRole("status")).toHaveTextContent("Sprint updated successfully.");
 
         fireEvent.click(screen.getByRole("button", { name: "Sprint options" }));
         fireEvent.click(await screen.findByRole("button", { name: "Delete sprint" }));
         const confirmation = screen.getByRole("dialog");
         expect(
-            within(confirmation).getByRole("heading", { name: "Delete Sprint 8 Updated?" })
+            within(confirmation).getByRole("heading", { name: "Delete Sprint 6 Updated?" })
         ).toBeInTheDocument();
         expect(confirmation).toHaveTextContent(
-            `Sprint 8 Updated (${formatSprintDate(startDate)} – ${formatSprintDate(endDate)}) has not started yet.`
+            `Sprint 6 Updated (${formatSprintDate(startDate)} – ${formatSprintDate(endDate)}) has not started yet.`
         );
         expect(confirmation).toHaveTextContent(
             "Its 1 planned ticket from all teams will go back to the product backlog."
@@ -229,7 +163,7 @@ describe("Sprint Planning", () => {
 
         await waitFor(() => {
             expect(screen.getByRole("combobox", { name: "Select sprint" })).toHaveValue("5");
-            expect(screen.queryByRole("option", { name: "Sprint 8 Updated" })).not.toBeInTheDocument();
+            expect(screen.queryByRole("option", { name: "Sprint 6 Updated" })).not.toBeInTheDocument();
         });
         expect(within(backlog).getByText("Implement login")).toBeInTheDocument();
         expect(await screen.findByRole("status")).toHaveTextContent("Sprint deleted successfully.");
@@ -239,18 +173,13 @@ describe("Sprint Planning", () => {
         const startDate = getTodayDateInputValue();
         const endDate = addCalendarDays(startDate, 13);
         server.use(
-            http.get(API_ENDPOINTS.SPRINTS, () => HttpResponse.json([
-                {
-                    id: 5,
-                    name: "Sprint 5",
+            ...createSprintPlanningHandlers({
+                sprints: [{
+                    ...sprintFiveFixture,
                     start_date: startDate,
                     end_date: endDate,
-                    goal: "",
-                },
-            ])),
-            http.get(API_ENDPOINTS.TICKETS, () => HttpResponse.json(backlogTickets)),
-            http.get(API_ENDPOINTS.TEAMS, () => HttpResponse.json([])),
-            http.get("/api/teams/capacity/", () => HttpResponse.json([]))
+                }],
+            })
         );
         render(<SprintPlanning />);
 

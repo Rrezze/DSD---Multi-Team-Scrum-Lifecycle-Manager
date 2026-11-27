@@ -7,50 +7,17 @@ import API_ENDPOINTS from "../../../constants/apiEndPoints";
 import { server } from "../../../tests/mocks/server";
 import { UserRole } from "../usersTypes";
 import Users from "../users";
-
-let nextUserId = 1;
-let nextAbsenceId = 1;
+import { createUsersHandlers } from "./users.handlers";
+import {
+    existingUser,
+    existingUserAbsence,
+    sampleAna,
+    sampleAnaAbsences,
+} from "./users.fixtures";
 
 beforeEach(() => {
-    nextUserId = 1;
-    nextAbsenceId = 1;
     server.resetHandlers();
-    server.use(
-        http.get(API_ENDPOINTS.USERS, () => HttpResponse.json([])),
-        http.post(API_ENDPOINTS.USERS, async ({ request }) => {
-            const payload = await request.json() as Record<string, unknown>;
-            return HttpResponse.json(
-                {
-                    id: nextUserId++,
-                    ...payload,
-                    role: payload.role ?? UserRole.DEVELOPER,
-                    is_active: true,
-                },
-                { status: 201 }
-            );
-        }),
-        http.delete("/api/users/:userId/", () =>
-            new HttpResponse(null, { status: 204 })
-        ),
-        http.get("/api/users/:userId/absences/", () => HttpResponse.json([])),
-        http.post("/api/users/:userId/absences/", async ({ params, request }) => {
-            const payload = await request.json() as Record<string, unknown>;
-            return HttpResponse.json(
-                {
-                    id: nextAbsenceId++,
-                    user: Number(params.userId),
-                    start_date: payload.start_date,
-                    end_date: payload.end_date,
-                    reason: payload.reason ?? "",
-                    hours: payload.hours ?? null,
-                },
-                { status: 201 }
-            );
-        }),
-        http.delete("/api/absences/:absenceId/", () =>
-            new HttpResponse(null, { status: 204 })
-        )
-    );
+    server.use(...createUsersHandlers());
 });
 
 async function renderUsers() {
@@ -92,30 +59,11 @@ describe("Users", () => {
     it("loads users from the API, creates a user, shows its details, and allows editing", async () => {
         server.use(
             http.get(API_ENDPOINTS.USERS, () =>
-                HttpResponse.json([
-                    {
-                        id: 12,
-                        username: "existing",
-                        email: "existing@example.com",
-                        first_name: "Existing",
-                        last_name: "User",
-                        role: UserRole.DEVELOPER,
-                        is_active: true,
-                    },
-                ])
+            HttpResponse.json([existingUser])
             ),
             http.get("/api/users/:userId/absences/", ({ params }) =>
                 Number(params.userId) === 12
-                    ? HttpResponse.json([
-                        {
-                            id: 33,
-                            user: 12,
-                            start_date: "2026-12-01",
-                            end_date: "2026-12-02",
-                            reason: "Holiday",
-                            hours: null,
-                        },
-                    ])
+                ? HttpResponse.json([existingUserAbsence])
                     : HttpResponse.json([])
             ),
             http.patch("/api/users/:userId/", async ({ params, request }) => {
@@ -199,37 +147,10 @@ describe("Users", () => {
     it("shows total unavailable days across all periods in the table", async () => {
         server.use(
             http.get(API_ENDPOINTS.USERS, () =>
-                HttpResponse.json([
-                    {
-                        id: 21,
-                        username: "ana",
-                        email: "",
-                        first_name: "Ana",
-                        last_name: "Dev",
-                        role: UserRole.DEVELOPER,
-                        is_active: true,
-                    },
-                ])
+            HttpResponse.json([sampleAna])
             ),
             http.get("/api/users/:userId/absences/", () =>
-                HttpResponse.json([
-                    {
-                        id: 31,
-                        user: 21,
-                        start_date: "2026-12-01",
-                        end_date: "2026-12-07",
-                        reason: "",
-                        hours: null,
-                    },
-                    {
-                        id: 32,
-                        user: 21,
-                        start_date: "2026-12-10",
-                        end_date: "2026-12-16",
-                        reason: "",
-                        hours: null,
-                    },
-                ])
+            HttpResponse.json(sampleAnaAbsences)
             )
         );
         render(<Users />);
@@ -243,24 +164,8 @@ describe("Users", () => {
         server.use(
             http.get(API_ENDPOINTS.USERS, () =>
                 HttpResponse.json([
-                    {
-                        id: 10,
-                        username: "high-id",
-                        email: "",
-                        first_name: "High",
-                        last_name: "ID",
-                        role: UserRole.DEVELOPER,
-                        is_active: true,
-                    },
-                    {
-                        id: 2,
-                        username: "low-id",
-                        email: "",
-                        first_name: "Low",
-                        last_name: "ID",
-                        role: UserRole.DEVELOPER,
-                        is_active: true,
-                    },
+                { ...sampleAna, id: 10, username: "high-id", first_name: "High", last_name: "ID" },
+                { ...sampleAna, id: 2, username: "low-id", first_name: "Low", last_name: "ID" },
                 ])
             )
         );
@@ -286,17 +191,7 @@ describe("Users", () => {
     it("confirms user deletion before removing the user from the table", async () => {
         server.use(
             http.get(API_ENDPOINTS.USERS, () =>
-                HttpResponse.json([
-                    {
-                        id: 44,
-                        username: "ana",
-                        email: "",
-                        first_name: "Ana",
-                        last_name: "Dev",
-                        role: UserRole.DEVELOPER,
-                        is_active: true,
-                    },
-                ])
+            HttpResponse.json([{ ...sampleAna, id: 44, email: "" }])
             )
         );
         render(<Users />);
@@ -332,17 +227,7 @@ describe("Users", () => {
     it("loads existing absences for the selected user", async () => {
         server.use(
             http.get(API_ENDPOINTS.USERS, () =>
-                HttpResponse.json([
-                    {
-                        id: 21,
-                        username: "ana",
-                        email: "ana@example.com",
-                        first_name: "Ana",
-                        last_name: "Dev",
-                        role: UserRole.DEVELOPER,
-                        is_active: true,
-                    },
-                ])
+            HttpResponse.json([sampleAna])
             ),
             http.get("/api/users/:userId/absences/", () =>
                 HttpResponse.json([
